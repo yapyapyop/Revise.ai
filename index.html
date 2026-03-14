@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>revise - Smart Study Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Top Navigation Bar -->
+<div class="topbar">
+    <div class="logo">revise</div>
+    <div class="topbar-actions">
+        <button class="stats-btn" id="statsBtn">
+            📊 Stats
+        </button>
+        <button class="settings-btn" id="settingsBtn">
+            ⚙️ Settings
+        </button>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-modal">
+        <div class="settings-header">
+            <h2 class="settings-title">Study Settings</h2>
+            <button class="close-btn" id="closeSettingsBtn">×</button>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label">Dark Mode</label>
+            <div class="setting-description">
+                <i>Switch to dark theme for comfortable late-night studying.</i>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="darkModeToggle">
+                <span class="slider"></span>
+            </label>
+            <div style="margin-top: 8px;">
+                <span id="darkModeText"><i>Light Mode</i></span>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label">Study Mode</label>
+            <div class="setting-description"> <i>
+                <i>Choose how wrong answers are handled during your study session.</i>
+                </i> </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="studyModeToggle">
+                <span class="slider"></span>
+            </label>
+            <div style="margin-top: 8px;">
+                <span id="studyModeText"><i>Elimination Mode</i></span>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label">Question Order</label>
+            <div class="setting-description"> <i>
+                Randomize the order of questions each time you start (Elimination Mode only).
+                </i> </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="randomOrderToggle">
+                <span class="slider"></span>
+            </label>
+            <div style="margin-top: 8px;">
+                <span id="randomOrderText">Sequential Order</span>
+            </div>
+        </div>
+
+        <div class="setting-group">
+            <label class="setting-label">Timed Mode</label>
+            <div class="setting-description"> <i>
+                Race against the clock!
+                </i> </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="notificationsToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="main-content">
+    <div class="quiz-container">
+        <div id="startScreen" class="start-screen">
+            <h1 class="title">Master Your Knowledge</h1>
+            <div class="study-mode-indicator" id="modeIndicator">
+                Elimination Mode Active
+            </div>
+            <p class="start-description">
+                <i>Experience the next level of studying with contextually accurate wrong answers designed to challenge your understanding, not just your memory. </i>
+            </p>
+
+            <div class="feature-highlights">
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Smart Distractors</h3>
+                    <p> <i>Wrong answers are crafted to test real understanding, not just recognition. </i></p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔄</div>
+                    <h3><i>Adaptive Learning<i></h3>
+                    <p><i>Choose between spaced repetition or elimination modes based on your preference.</i></p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Progress Tracking</h3>
+                    <p>Monitor your improvement and identify areas that need more attention.</p>
+                </div>
+            </div>
+
+            <button class="btn" id="startBtn">Start Studying</button>
+        </div>
+
+        <div id="quizScreen" style="display: none;">
+            <div class="header">
+                <h1 class="title" id="quizTitle">Biology Quiz</h1>
+                <div class="study-mode-indicator" id="quizModeIndicator">
+                    <i>Elimination Mode</i>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="question-counter" id="questionCounter"></div>
+            </div>
+
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback" style="display: none;"></div>
+
+            <div>
+                <button class="btn" id="nextBtn" disabled>Next Question</button>
+            </div>
+        </div>
+
+        <div id="resultsScreen" style="display: none;">
+            <div class="results">
+                <h1 class="title">Study Session Complete!</h1>
+                <div class="score" id="finalScore"></div>
+                <div class="results-text" id="resultsText"></div>
+                <button class="btn" id="reviewBtn" style="display: none;">Review Wrong Answers</button>
+                <button class="btn" id="restartBtn">Start New Session</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js" type="module" defer></script>
+</body>
+</html>

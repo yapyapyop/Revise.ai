@@ -1,0 +1,273 @@
+<html>
+<head>
+<title>script.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #7a7e85;}
+.s1 { color: #bcbec4;}
+.s2 { color: #cf8e6d;}
+.s3 { color: #6aab73;}
+.s4 { color: #bcbec4;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+script.js</font>
+</center></td></tr></table>
+<pre><span class="s0">// Import the questions from the external file</span>
+<span class="s2">import </span><span class="s1">allQuestions from </span><span class="s3">'./questions.js'</span><span class="s4">;</span>
+
+<span class="s1">document</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'DOMContentLoaded'</span><span class="s4">, () =&gt; {</span>
+    <span class="s0">// Settings and UI state</span>
+    <span class="s2">let </span><span class="s1">isSpacedRepetition </span><span class="s4">= </span><span class="s2">false</span><span class="s4">; </span><span class="s0">// false = elimination mode, true = spaced repetition mode</span>
+    <span class="s2">let </span><span class="s1">isDarkMode </span><span class="s4">= </span><span class="s2">false</span><span class="s4">; </span><span class="s0">// Theme state</span>
+
+    <span class="s0">// DOM elements</span>
+    <span class="s2">const </span><span class="s1">startScreen </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'startScreen'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">quizScreen </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'quizScreen'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">resultsScreen </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'resultsScreen'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">settingsOverlay </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'settingsOverlay'</span><span class="s4">);</span>
+
+    <span class="s2">const </span><span class="s1">startBtn </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'startBtn'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">nextBtn </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'nextBtn'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">reviewBtn </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'reviewBtn'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">restartBtn </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'restartBtn'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">settingsBtn </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'settingsBtn'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">closeSettingsBtn </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'closeSettingsBtn'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">themeBtn </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'themeBtn'</span><span class="s4">);</span>
+
+    <span class="s2">const </span><span class="s1">questionEl </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'question'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">optionsEl </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'options'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">feedbackEl </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'feedback'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">questionCounterEl </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'questionCounter'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">progressFillEl </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'progressFill'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">quizTitleEl </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'quizTitle'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">finalScoreEl </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'finalScore'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">resultsTextEl </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'resultsText'</span><span class="s4">);</span>
+
+    <span class="s2">const </span><span class="s1">studyModeToggle </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'studyModeToggle'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">studyModeText </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'studyModeText'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">darkModeToggle </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'darkModeToggle'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">darkModeText </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'darkModeText'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">modeIndicator </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'modeIndicator'</span><span class="s4">);</span>
+    <span class="s2">const </span><span class="s1">quizModeIndicator </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">getElementById</span><span class="s4">(</span><span class="s3">'quizModeIndicator'</span><span class="s4">);</span>
+
+    <span class="s2">let </span><span class="s1">currentQuestions </span><span class="s4">= [];</span>
+    <span class="s2">let </span><span class="s1">wrongAnswers </span><span class="s4">= [];</span>
+    <span class="s2">let </span><span class="s1">spacedRepetitionQueue </span><span class="s4">= []; </span><span class="s0">// For questions that need to be repeated</span>
+    <span class="s2">let </span><span class="s1">currentQuestionIndex </span><span class="s4">= </span><span class="s5">0</span><span class="s4">;</span>
+    <span class="s2">let </span><span class="s1">score </span><span class="s4">= </span><span class="s5">0</span><span class="s4">;</span>
+    <span class="s2">let </span><span class="s1">answered </span><span class="s4">= </span><span class="s2">false</span><span class="s4">;</span>
+    <span class="s2">let </span><span class="s1">isReviewing </span><span class="s4">= </span><span class="s2">false</span><span class="s4">;</span>
+
+    <span class="s0">// Theme handlers</span>
+    <span class="s1">themeBtn</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'click'</span><span class="s4">, </span><span class="s1">toggleDarkMode</span><span class="s4">);</span>
+
+    <span class="s1">darkModeToggle</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'change'</span><span class="s4">, (</span><span class="s1">e</span><span class="s4">) =&gt; {</span>
+        <span class="s1">isDarkMode </span><span class="s4">= </span><span class="s1">e</span><span class="s4">.</span><span class="s1">target</span><span class="s4">.</span><span class="s1">checked</span><span class="s4">;</span>
+        <span class="s1">applyTheme</span><span class="s4">();</span>
+    <span class="s4">});</span>
+
+    <span class="s2">function </span><span class="s1">toggleDarkMode</span><span class="s4">() {</span>
+        <span class="s1">isDarkMode </span><span class="s4">= !</span><span class="s1">isDarkMode</span><span class="s4">;</span>
+        <span class="s1">darkModeToggle</span><span class="s4">.</span><span class="s1">checked </span><span class="s4">= </span><span class="s1">isDarkMode</span><span class="s4">;</span>
+        <span class="s1">applyTheme</span><span class="s4">();</span>
+    <span class="s4">}</span>
+
+    <span class="s2">function </span><span class="s1">applyTheme</span><span class="s4">() {</span>
+        <span class="s2">if </span><span class="s4">(</span><span class="s1">isDarkMode</span><span class="s4">) {</span>
+            <span class="s1">document</span><span class="s4">.</span><span class="s1">documentElement</span><span class="s4">.</span><span class="s1">setAttribute</span><span class="s4">(</span><span class="s3">'data-theme'</span><span class="s4">, </span><span class="s3">'dark'</span><span class="s4">);</span>
+            <span class="s1">themeBtn</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">'☀️'</span><span class="s4">;</span>
+            <span class="s1">themeBtn</span><span class="s4">.</span><span class="s1">title </span><span class="s4">= </span><span class="s3">'Switch to light mode'</span><span class="s4">;</span>
+            <span class="s1">darkModeText</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">'Dark Mode'</span><span class="s4">;</span>
+        <span class="s4">} </span><span class="s2">else </span><span class="s4">{</span>
+            <span class="s1">document</span><span class="s4">.</span><span class="s1">documentElement</span><span class="s4">.</span><span class="s1">setAttribute</span><span class="s4">(</span><span class="s3">'data-theme'</span><span class="s4">, </span><span class="s3">'light'</span><span class="s4">);</span>
+            <span class="s1">themeBtn</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">'🌙'</span><span class="s4">;</span>
+            <span class="s1">themeBtn</span><span class="s4">.</span><span class="s1">title </span><span class="s4">= </span><span class="s3">'Switch to dark mode'</span><span class="s4">;</span>
+            <span class="s1">darkModeText</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">'Light Mode'</span><span class="s4">;</span>
+        <span class="s4">}</span>
+    <span class="s4">}</span>
+
+    <span class="s0">// Settings handlers</span>
+    <span class="s1">settingsBtn</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'click'</span><span class="s4">, () =&gt; {</span>
+        <span class="s1">settingsOverlay</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'flex'</span><span class="s4">;</span>
+    <span class="s4">});</span>
+
+    <span class="s1">closeSettingsBtn</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'click'</span><span class="s4">, () =&gt; {</span>
+        <span class="s1">settingsOverlay</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'none'</span><span class="s4">;</span>
+    <span class="s4">});</span>
+
+    <span class="s1">settingsOverlay</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'click'</span><span class="s4">, (</span><span class="s1">e</span><span class="s4">) =&gt; {</span>
+        <span class="s2">if </span><span class="s4">(</span><span class="s1">e</span><span class="s4">.</span><span class="s1">target </span><span class="s4">=== </span><span class="s1">settingsOverlay</span><span class="s4">) {</span>
+            <span class="s1">settingsOverlay</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'none'</span><span class="s4">;</span>
+        <span class="s4">}</span>
+    <span class="s4">});</span>
+
+    <span class="s1">studyModeToggle</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'change'</span><span class="s4">, (</span><span class="s1">e</span><span class="s4">) =&gt; {</span>
+        <span class="s1">isSpacedRepetition </span><span class="s4">= </span><span class="s1">e</span><span class="s4">.</span><span class="s1">target</span><span class="s4">.</span><span class="s1">checked</span><span class="s4">;</span>
+        <span class="s2">const </span><span class="s1">modeText </span><span class="s4">= </span><span class="s1">isSpacedRepetition </span><span class="s4">? </span><span class="s3">'Spaced Repetition Mode' </span><span class="s4">: </span><span class="s3">'Elimination Mode'</span><span class="s4">;</span>
+        <span class="s1">studyModeText</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s1">modeText</span><span class="s4">;</span>
+        <span class="s1">modeIndicator</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s1">modeText </span><span class="s4">+ </span><span class="s3">' Active'</span><span class="s4">;</span>
+        <span class="s1">updateModeIndicators</span><span class="s4">();</span>
+    <span class="s4">});</span>
+
+    <span class="s2">function </span><span class="s1">updateModeIndicators</span><span class="s4">() {</span>
+        <span class="s2">const </span><span class="s1">modeText </span><span class="s4">= </span><span class="s1">isSpacedRepetition </span><span class="s4">? </span><span class="s3">'Spaced Repetition' </span><span class="s4">: </span><span class="s3">'Elimination Mode'</span><span class="s4">;</span>
+        <span class="s1">modeIndicator</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s1">modeText </span><span class="s4">+ </span><span class="s3">' Active'</span><span class="s4">;</span>
+        <span class="s1">quizModeIndicator</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s1">modeText</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s0">// Quiz logic</span>
+    <span class="s1">startBtn</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'click'</span><span class="s4">, </span><span class="s1">startQuiz</span><span class="s4">);</span>
+    <span class="s1">nextBtn</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'click'</span><span class="s4">, </span><span class="s1">nextQuestion</span><span class="s4">);</span>
+    <span class="s1">reviewBtn</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'click'</span><span class="s4">, </span><span class="s1">startReview</span><span class="s4">);</span>
+    <span class="s1">restartBtn</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'click'</span><span class="s4">, </span><span class="s1">restartQuiz</span><span class="s4">);</span>
+
+    <span class="s2">function </span><span class="s1">startQuiz</span><span class="s4">() {</span>
+        <span class="s1">isReviewing </span><span class="s4">= </span><span class="s2">false</span><span class="s4">;</span>
+        <span class="s1">wrongAnswers </span><span class="s4">= [];</span>
+        <span class="s1">spacedRepetitionQueue </span><span class="s4">= [];</span>
+        <span class="s1">currentQuestions </span><span class="s4">= [</span><span class="s1">...allQuestions</span><span class="s4">];</span>
+        <span class="s1">quizTitleEl</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">'Biology Quiz'</span><span class="s4">;</span>
+        <span class="s1">commonStart</span><span class="s4">();</span>
+    <span class="s4">}</span>
+
+    <span class="s2">function </span><span class="s1">startReview</span><span class="s4">() {</span>
+        <span class="s1">isReviewing </span><span class="s4">= </span><span class="s2">true</span><span class="s4">;</span>
+        <span class="s1">currentQuestions </span><span class="s4">= [</span><span class="s1">...wrongAnswers</span><span class="s4">];</span>
+        <span class="s1">wrongAnswers </span><span class="s4">= [];</span>
+        <span class="s1">spacedRepetitionQueue </span><span class="s4">= [];</span>
+        <span class="s1">quizTitleEl</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">'Reviewing Mistakes'</span><span class="s4">;</span>
+        <span class="s1">commonStart</span><span class="s4">();</span>
+    <span class="s4">}</span>
+
+    <span class="s2">function </span><span class="s1">commonStart</span><span class="s4">() {</span>
+        <span class="s1">currentQuestionIndex </span><span class="s4">= </span><span class="s5">0</span><span class="s4">;</span>
+        <span class="s1">score </span><span class="s4">= </span><span class="s5">0</span><span class="s4">;</span>
+        <span class="s1">shuffleArray</span><span class="s4">(</span><span class="s1">currentQuestions</span><span class="s4">);</span>
+        <span class="s1">startScreen</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'none'</span><span class="s4">;</span>
+        <span class="s1">resultsScreen</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'none'</span><span class="s4">;</span>
+        <span class="s1">quizScreen</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'block'</span><span class="s4">;</span>
+        <span class="s1">updateModeIndicators</span><span class="s4">();</span>
+        <span class="s1">showQuestion</span><span class="s4">();</span>
+    <span class="s4">}</span>
+
+    <span class="s2">function </span><span class="s1">shuffleArray</span><span class="s4">(</span><span class="s1">array</span><span class="s4">) {</span>
+        <span class="s2">for </span><span class="s4">(</span><span class="s2">let </span><span class="s1">i </span><span class="s4">= </span><span class="s1">array</span><span class="s4">.</span><span class="s1">length </span><span class="s4">- </span><span class="s5">1</span><span class="s4">; </span><span class="s1">i </span><span class="s4">&gt; </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i</span><span class="s4">--) {</span>
+            <span class="s2">const </span><span class="s1">j </span><span class="s4">= </span><span class="s1">Math</span><span class="s4">.</span><span class="s1">floor</span><span class="s4">(</span><span class="s1">Math</span><span class="s4">.</span><span class="s1">random</span><span class="s4">() * (</span><span class="s1">i </span><span class="s4">+ </span><span class="s5">1</span><span class="s4">));</span>
+            <span class="s4">[</span><span class="s1">array</span><span class="s4">[</span><span class="s1">i</span><span class="s4">], </span><span class="s1">array</span><span class="s4">[</span><span class="s1">j</span><span class="s4">]] = [</span><span class="s1">array</span><span class="s4">[</span><span class="s1">j</span><span class="s4">], </span><span class="s1">array</span><span class="s4">[</span><span class="s1">i</span><span class="s4">]];</span>
+        <span class="s4">}</span>
+    <span class="s4">}</span>
+
+    <span class="s2">function </span><span class="s1">showQuestion</span><span class="s4">() {</span>
+        <span class="s1">answered </span><span class="s4">= </span><span class="s2">false</span><span class="s4">;</span>
+        <span class="s2">const </span><span class="s1">q </span><span class="s4">= </span><span class="s1">currentQuestions</span><span class="s4">[</span><span class="s1">currentQuestionIndex</span><span class="s4">];</span>
+        <span class="s2">const </span><span class="s1">allAnswers </span><span class="s4">= [</span><span class="s1">q</span><span class="s4">.</span><span class="s1">correct</span><span class="s4">, </span><span class="s1">...q</span><span class="s4">.</span><span class="s1">wrong</span><span class="s4">];</span>
+        <span class="s1">shuffleArray</span><span class="s4">(</span><span class="s1">allAnswers</span><span class="s4">);</span>
+
+        <span class="s1">questionEl</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s1">q</span><span class="s4">.</span><span class="s1">question</span><span class="s4">;</span>
+
+        <span class="s2">let </span><span class="s1">totalQuestions </span><span class="s4">= </span><span class="s1">currentQuestions</span><span class="s4">.</span><span class="s1">length</span><span class="s4">;</span>
+        <span class="s2">if </span><span class="s4">(</span><span class="s1">isSpacedRepetition </span><span class="s4">&amp;&amp; </span><span class="s1">spacedRepetitionQueue</span><span class="s4">.</span><span class="s1">length </span><span class="s4">&gt; </span><span class="s5">0</span><span class="s4">) {</span>
+            <span class="s1">totalQuestions </span><span class="s4">+= </span><span class="s1">spacedRepetitionQueue</span><span class="s4">.</span><span class="s1">length</span><span class="s4">;</span>
+        <span class="s4">}</span>
+
+        <span class="s1">questionCounterEl</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">`Question </span><span class="s1">$</span><span class="s4">{</span><span class="s1">currentQuestionIndex </span><span class="s4">+ </span><span class="s5">1</span><span class="s4">} </span><span class="s3">of </span><span class="s1">$</span><span class="s4">{</span><span class="s1">totalQuestions</span><span class="s4">}</span><span class="s3">`</span><span class="s4">;</span>
+
+        <span class="s2">const </span><span class="s1">progress </span><span class="s4">= ((</span><span class="s1">currentQuestionIndex</span><span class="s4">) / </span><span class="s1">totalQuestions</span><span class="s4">) * </span><span class="s5">100</span><span class="s4">;</span>
+        <span class="s1">progressFillEl</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">width </span><span class="s4">= </span><span class="s1">progress </span><span class="s4">+ </span><span class="s3">'%'</span><span class="s4">;</span>
+
+        <span class="s1">optionsEl</span><span class="s4">.</span><span class="s1">innerHTML </span><span class="s4">= </span><span class="s3">''</span><span class="s4">;</span>
+        <span class="s1">allAnswers</span><span class="s4">.</span><span class="s1">forEach</span><span class="s4">(</span><span class="s1">answer </span><span class="s4">=&gt; {</span>
+            <span class="s2">const </span><span class="s1">option </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">createElement</span><span class="s4">(</span><span class="s3">'div'</span><span class="s4">);</span>
+            <span class="s1">option</span><span class="s4">.</span><span class="s1">className </span><span class="s4">= </span><span class="s3">'option'</span><span class="s4">;</span>
+            <span class="s1">option</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s1">answer</span><span class="s4">;</span>
+            <span class="s1">option</span><span class="s4">.</span><span class="s1">addEventListener</span><span class="s4">(</span><span class="s3">'click'</span><span class="s4">, () =&gt; </span><span class="s1">selectAnswer</span><span class="s4">(</span><span class="s1">option</span><span class="s4">, </span><span class="s1">answer</span><span class="s4">, </span><span class="s1">q</span><span class="s4">.</span><span class="s1">correct</span><span class="s4">));</span>
+            <span class="s1">optionsEl</span><span class="s4">.</span><span class="s1">appendChild</span><span class="s4">(</span><span class="s1">option</span><span class="s4">);</span>
+        <span class="s4">});</span>
+
+        <span class="s1">feedbackEl</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'none'</span><span class="s4">;</span>
+        <span class="s1">nextBtn</span><span class="s4">.</span><span class="s1">disabled </span><span class="s4">= </span><span class="s2">true</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s2">function </span><span class="s1">selectAnswer</span><span class="s4">(</span><span class="s1">optionElement</span><span class="s4">, </span><span class="s1">answer</span><span class="s4">, </span><span class="s1">correctAnswer</span><span class="s4">) {</span>
+        <span class="s2">if </span><span class="s4">(</span><span class="s1">answered</span><span class="s4">) </span><span class="s2">return</span><span class="s4">;</span>
+        <span class="s1">answered </span><span class="s4">= </span><span class="s2">true</span><span class="s4">;</span>
+
+        <span class="s2">const </span><span class="s1">allOptions </span><span class="s4">= </span><span class="s1">document</span><span class="s4">.</span><span class="s1">querySelectorAll</span><span class="s4">(</span><span class="s3">'.option'</span><span class="s4">);</span>
+        <span class="s1">allOptions</span><span class="s4">.</span><span class="s1">forEach</span><span class="s4">(</span><span class="s1">opt </span><span class="s4">=&gt; {</span>
+            <span class="s1">opt</span><span class="s4">.</span><span class="s1">classList</span><span class="s4">.</span><span class="s1">add</span><span class="s4">(</span><span class="s3">'disabled'</span><span class="s4">);</span>
+            <span class="s2">if </span><span class="s4">(</span><span class="s1">opt</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">=== </span><span class="s1">correctAnswer</span><span class="s4">) {</span>
+                <span class="s1">opt</span><span class="s4">.</span><span class="s1">classList</span><span class="s4">.</span><span class="s1">add</span><span class="s4">(</span><span class="s3">'correct'</span><span class="s4">);</span>
+            <span class="s4">}</span>
+        <span class="s4">});</span>
+
+        <span class="s2">if </span><span class="s4">(</span><span class="s1">answer </span><span class="s4">=== </span><span class="s1">correctAnswer</span><span class="s4">) {</span>
+            <span class="s1">score</span><span class="s4">++;</span>
+            <span class="s1">feedbackEl</span><span class="s4">.</span><span class="s1">className </span><span class="s4">= </span><span class="s3">'feedback correct'</span><span class="s4">;</span>
+            <span class="s1">feedbackEl</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">'Correct! Well done.'</span><span class="s4">;</span>
+        <span class="s4">} </span><span class="s2">else </span><span class="s4">{</span>
+            <span class="s1">optionElement</span><span class="s4">.</span><span class="s1">classList</span><span class="s4">.</span><span class="s1">add</span><span class="s4">(</span><span class="s3">'incorrect'</span><span class="s4">);</span>
+
+            <span class="s2">if </span><span class="s4">(</span><span class="s1">isSpacedRepetition</span><span class="s4">) {</span>
+                <span class="s0">// Add to spaced repetition queue for later review</span>
+                <span class="s1">spacedRepetitionQueue</span><span class="s4">.</span><span class="s1">push</span><span class="s4">(</span><span class="s1">currentQuestions</span><span class="s4">[</span><span class="s1">currentQuestionIndex</span><span class="s4">]);</span>
+            <span class="s4">} </span><span class="s2">else </span><span class="s4">{</span>
+                <span class="s0">// Elimination mode - add to wrong answers for final review</span>
+                <span class="s1">wrongAnswers</span><span class="s4">.</span><span class="s1">push</span><span class="s4">(</span><span class="s1">currentQuestions</span><span class="s4">[</span><span class="s1">currentQuestionIndex</span><span class="s4">]);</span>
+            <span class="s4">}</span>
+
+            <span class="s1">feedbackEl</span><span class="s4">.</span><span class="s1">className </span><span class="s4">= </span><span class="s3">'feedback incorrect'</span><span class="s4">;</span>
+            <span class="s1">feedbackEl</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">`Incorrect. The correct answer is: </span><span class="s1">$</span><span class="s4">{</span><span class="s1">correctAnswer</span><span class="s4">}</span><span class="s3">`</span><span class="s4">;</span>
+        <span class="s4">}</span>
+
+        <span class="s1">feedbackEl</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'block'</span><span class="s4">;</span>
+        <span class="s1">nextBtn</span><span class="s4">.</span><span class="s1">disabled </span><span class="s4">= </span><span class="s2">false</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s2">function </span><span class="s1">nextQuestion</span><span class="s4">() {</span>
+        <span class="s1">currentQuestionIndex</span><span class="s4">++;</span>
+
+        <span class="s0">// Check if we've finished the current set of questions</span>
+        <span class="s2">if </span><span class="s4">(</span><span class="s1">currentQuestionIndex </span><span class="s4">&gt;= </span><span class="s1">currentQuestions</span><span class="s4">.</span><span class="s1">length</span><span class="s4">) {</span>
+            <span class="s2">if </span><span class="s4">(</span><span class="s1">isSpacedRepetition </span><span class="s4">&amp;&amp; </span><span class="s1">spacedRepetitionQueue</span><span class="s4">.</span><span class="s1">length </span><span class="s4">&gt; </span><span class="s5">0</span><span class="s4">) {</span>
+                <span class="s0">// Move spaced repetition questions back to main queue</span>
+                <span class="s1">currentQuestions </span><span class="s4">= [</span><span class="s1">...spacedRepetitionQueue</span><span class="s4">];</span>
+                <span class="s1">spacedRepetitionQueue </span><span class="s4">= [];</span>
+                <span class="s1">currentQuestionIndex </span><span class="s4">= </span><span class="s5">0</span><span class="s4">;</span>
+                <span class="s1">shuffleArray</span><span class="s4">(</span><span class="s1">currentQuestions</span><span class="s4">);</span>
+                <span class="s1">showQuestion</span><span class="s4">();</span>
+            <span class="s4">} </span><span class="s2">else </span><span class="s4">{</span>
+                <span class="s1">showResults</span><span class="s4">();</span>
+            <span class="s4">}</span>
+        <span class="s4">} </span><span class="s2">else </span><span class="s4">{</span>
+            <span class="s1">showQuestion</span><span class="s4">();</span>
+        <span class="s4">}</span>
+    <span class="s4">}</span>
+
+    <span class="s2">function </span><span class="s1">showResults</span><span class="s4">() {</span>
+        <span class="s1">quizScreen</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'none'</span><span class="s4">;</span>
+        <span class="s1">resultsScreen</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'block'</span><span class="s4">;</span>
+
+        <span class="s2">const </span><span class="s1">totalQuestions </span><span class="s4">= </span><span class="s1">isReviewing </span><span class="s4">? </span><span class="s1">wrongAnswers</span><span class="s4">.</span><span class="s1">length </span><span class="s4">: </span><span class="s1">allQuestions</span><span class="s4">.</span><span class="s1">length</span><span class="s4">;</span>
+        <span class="s2">const </span><span class="s1">percentage </span><span class="s4">= </span><span class="s1">Math</span><span class="s4">.</span><span class="s1">round</span><span class="s4">((</span><span class="s1">score </span><span class="s4">/ </span><span class="s1">currentQuestions</span><span class="s4">.</span><span class="s1">length</span><span class="s4">) * </span><span class="s5">100</span><span class="s4">);</span>
+        <span class="s1">finalScoreEl</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">`</span><span class="s1">$</span><span class="s4">{</span><span class="s1">percentage</span><span class="s4">}</span><span class="s3">%`</span><span class="s4">;</span>
+        <span class="s1">resultsTextEl</span><span class="s4">.</span><span class="s1">textContent </span><span class="s4">= </span><span class="s3">`You got </span><span class="s1">$</span><span class="s4">{</span><span class="s1">score</span><span class="s4">} </span><span class="s3">out of </span><span class="s1">$</span><span class="s4">{</span><span class="s1">currentQuestions</span><span class="s4">.</span><span class="s1">length</span><span class="s4">} </span><span class="s3">questions correct!`</span><span class="s4">;</span>
+
+        <span class="s0">// Show review button if there are wrong answers (elimination mode only)</span>
+        <span class="s1">reviewBtn</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= (!</span><span class="s1">isSpacedRepetition </span><span class="s4">&amp;&amp; </span><span class="s1">wrongAnswers</span><span class="s4">.</span><span class="s1">length </span><span class="s4">&gt; </span><span class="s5">0</span><span class="s4">) ? </span><span class="s3">'inline-block' </span><span class="s4">: </span><span class="s3">'none'</span><span class="s4">;</span>
+    <span class="s4">}</span>
+
+    <span class="s0">// Initialize theme on page load</span>
+    <span class="s1">applyTheme</span><span class="s4">();</span>
+
+    <span class="s2">function </span><span class="s1">restartQuiz</span><span class="s4">() {</span>
+        <span class="s1">resultsScreen</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'none'</span><span class="s4">;</span>
+        <span class="s1">startScreen</span><span class="s4">.</span><span class="s1">style</span><span class="s4">.</span><span class="s1">display </span><span class="s4">= </span><span class="s3">'block'</span><span class="s4">;</span>
+    <span class="s4">}</span>
+<span class="s4">});</span></pre>
+</body>
+</html>
