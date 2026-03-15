@@ -24,6 +24,51 @@
     </div>
 </div>
 
+<!-- Question Manager Modal -->
+<div class="settings-overlay" id="questionManagerOverlay">
+    <div class="question-manager-modal">
+        <div class="settings-header">
+            <h2 class="settings-title">Question Manager</h2>
+            <button class="close-btn" id="closeQuestionManagerBtn">×</button>
+        </div>
+
+        <div class="qm-status">
+            <span id="questionCount">0 questions loaded</span>
+        </div>
+
+        <div class="qm-section">
+            <h3 class="qm-section-title">Import Questions</h3>
+            <div class="qm-buttons">
+                <label for="jsonFileInput" class="btn btn-secondary">📤 Upload JSON File</label>
+                <input type="file" id="jsonFileInput" accept=".json" style="display: none;">
+                <button class="btn btn-secondary" id="pasteJsonBtn">📋 Paste JSON</button>
+                <button class="btn btn-secondary" id="pasteSpreadsheetBtn">📊 From Spreadsheet</button>
+            </div>
+        </div>
+
+        <div class="qm-section">
+            <h3 class="qm-section-title">Export Questions</h3>
+            <div class="qm-buttons">
+                <button class="btn btn-secondary" id="downloadJsonBtn">💾 Download JSON</button>
+                <button class="btn btn-secondary" id="copyJsonBtn">📋 Copy to Clipboard</button>
+            </div>
+        </div>
+
+        <div class="qm-section">
+            <h3 class="qm-section-title">Edit Questions</h3>
+            <div id="questionList" class="question-list">
+                <!-- Questions will be populated here -->
+            </div>
+            <button class="btn" id="addQuestionBtn">+ Add New Question</button>
+        </div>
+
+        <div class="qm-footer">
+            <button class="btn btn-danger" id="clearAllBtn">Clear All</button>
+            <button class="btn" id="doneManagingBtn">Done</button>
+        </div>
+    </div>
+</div>
+
 <!-- Settings Modal -->
 <div class="settings-overlay" id="settingsOverlay">
     <div class="settings-modal">
@@ -35,36 +80,36 @@
         <div class="setting-group">
             <label class="setting-label">Dark Mode</label>
             <div class="setting-description">
-                <i>Switch to dark theme for comfortable late-night studying.</i>
+                Switch to dark theme for comfortable late-night studying.
             </div>
             <label class="toggle-switch">
                 <input type="checkbox" id="darkModeToggle">
                 <span class="slider"></span>
             </label>
             <div style="margin-top: 8px;">
-                <span id="darkModeText"><i>Light Mode</i></span>
+                <span id="darkModeText">Light Mode</span>
             </div>
         </div>
 
         <div class="setting-group">
             <label class="setting-label">Study Mode</label>
-            <div class="setting-description"> <i>
-                <i>Choose how wrong answers are handled during your study session.</i>
-                </i> </div>
+            <div class="setting-description">
+                Choose how wrong answers are handled during your study session.
+            </div>
             <label class="toggle-switch">
                 <input type="checkbox" id="studyModeToggle">
                 <span class="slider"></span>
             </label>
             <div style="margin-top: 8px;">
-                <span id="studyModeText"><i>Elimination Mode</i></span>
+                <span id="studyModeText">Elimination Mode</span>
             </div>
         </div>
 
         <div class="setting-group">
             <label class="setting-label">Question Order</label>
-            <div class="setting-description"> <i>
+            <div class="setting-description">
                 Randomize the order of questions each time you start (Elimination Mode only).
-                </i> </div>
+            </div>
             <label class="toggle-switch">
                 <input type="checkbox" id="randomOrderToggle">
                 <span class="slider"></span>
@@ -76,9 +121,9 @@
 
         <div class="setting-group">
             <label class="setting-label">Timed Mode</label>
-            <div class="setting-description"> <i>
+            <div class="setting-description">
                 Race against the clock!
-                </i> </div>
+            </div>
             <label class="toggle-switch">
                 <input type="checkbox" id="notificationsToggle">
                 <span class="slider"></span>
@@ -96,19 +141,19 @@
                 Elimination Mode Active
             </div>
             <p class="start-description">
-                <i>Experience the next level of studying with contextually accurate wrong answers designed to challenge your understanding, not just your memory. </i>
+                Experience the next level of studying with contextually accurate wrong answers designed to challenge your understanding, not just your memory.
             </p>
 
             <div class="feature-highlights">
                 <div class="feature">
                     <div class="feature-icon">🎯</div>
                     <h3>Smart Distractors</h3>
-                    <p> <i>Wrong answers are crafted to test real understanding, not just recognition. </i></p>
+                    <p>Wrong answers are crafted to test real understanding, not just recognition.</p>
                 </div>
                 <div class="feature">
                     <div class="feature-icon">🔄</div>
-                    <h3><i>Adaptive Learning<i></h3>
-                    <p><i>Choose between spaced repetition or elimination modes based on your preference.</i></p>
+                    <h3>Adaptive Learning</h3>
+                    <p>Choose between spaced repetition or elimination modes based on your preference.</p>
                 </div>
                 <div class="feature">
                     <div class="feature-icon">📊</div>
@@ -118,13 +163,14 @@
             </div>
 
             <button class="btn" id="startBtn">Start Studying</button>
+            <button class="btn btn-secondary" id="manageQuestionsBtn">📝 Manage Questions</button>
         </div>
 
         <div id="quizScreen" style="display: none;">
             <div class="header">
                 <h1 class="title" id="quizTitle">Biology Quiz</h1>
                 <div class="study-mode-indicator" id="quizModeIndicator">
-                    <i>Elimination Mode</i>
+                    Elimination Mode
                 </div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>

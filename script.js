@@ -38,6 +38,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const modeIndicator = document.getElementById('modeIndicator');
     const quizModeIndicator = document.getElementById('quizModeIndicator');
 
+    // Question Manager elements
+    const manageQuestionsBtn = document.getElementById('manageQuestionsBtn');
+    const questionManagerOverlay = document.getElementById('questionManagerOverlay');
+    const closeQuestionManagerBtn = document.getElementById('closeQuestionManagerBtn');
+    const doneManagingBtn = document.getElementById('doneManagingBtn');
+    const questionCount = document.getElementById('questionCount');
+    const questionList = document.getElementById('questionList');
+    const addQuestionBtn = document.getElementById('addQuestionBtn');
+    const jsonFileInput = document.getElementById('jsonFileInput');
+    const pasteJsonBtn = document.getElementById('pasteJsonBtn');
+    const pasteSpreadsheetBtn = document.getElementById('pasteSpreadsheetBtn');
+    const downloadJsonBtn = document.getElementById('downloadJsonBtn');
+    const copyJsonBtn = document.getElementById('copyJsonBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+
+    // Load questions from localStorage or use defaults
+    function loadQuestionsFromStorage() {
+        const stored = localStorage.getItem('revise_questions');
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Error loading questions from storage:', e);
+            }
+        }
+        return [...allQuestions]; // Use imported questions as default
+    }
+
+    // Save questions to localStorage
+    function saveQuestionsToStorage(questions) {
+        localStorage.setItem('revise_questions', JSON.stringify(questions));
+    }
+
+    // Current questions in use
+    let currentQuestions = loadQuestionsFromStorage();
+
     // Spaced Repetition Card System
     class SpacedRepetitionCard {
         constructor(question, id) {
@@ -367,8 +403,12 @@ document.addEventListener('DOMContentLoaded', () => {
     restartBtn.addEventListener('click', restartQuiz);
 
     function startQuiz() {
+        if (currentQuestions.length === 0) {
+            alert('Please add some questions first!');
+            return;
+        }
         const mode = isSpacedRepetition ? 'spaced-repetition' : 'elimination';
-        currentSession = new QuizSession(allQuestions, mode, isRandomOrder);
+        currentSession = new QuizSession(currentQuestions, mode, isRandomOrder);
         startSession();
     }
 
@@ -504,7 +544,193 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSession = null;
     }
 
+    // ============================================
+    // QUESTION MANAGER FUNCTIONS
+    // ============================================
+
+    function updateQuestionCount() {
+        questionCount.textContent = `${currentQuestions.length} question${currentQuestions.length !== 1 ? 's' : ''} loaded`;
+    }
+
+    function renderQuestionList() {
+        questionList.innerHTML = '';
+        currentQuestions.forEach((q, index) => {
+            const item = document.createElement('div');
+            item.className = 'question-item';
+            item.innerHTML = `
+                <div class="question-item-text">${index + 1}. ${q.question}</div>
+                <div class="question-item-actions">
+                    <button onclick="editQuestion(${index})">✏️</button>
+                    <button onclick="deleteQuestion(${index})">🗑️</button>
+                </div>
+            `;
+            questionList.appendChild(item);
+        });
+        updateQuestionCount();
+    }
+
+    window.editQuestion = function(index) {
+        const q = currentQuestions[index];
+        const newQuestion = prompt('Edit question:', q.question);
+        if (newQuestion === null) return;
+
+        const newCorrect = prompt('Edit correct answer:', q.correct);
+        if (newCorrect === null) return;
+
+        const newWrong = [];
+        for (let i = 0; i < 3; i++) {
+            const wrong = prompt(`Edit wrong answer ${i + 1}:`, q.wrong[i] || '');
+            if (wrong === null) return;
+            newWrong.push(wrong);
+        }
+
+        currentQuestions[index] = {
+            question: newQuestion,
+            correct: newCorrect,
+            wrong: newWrong
+        };
+
+        saveQuestionsToStorage(currentQuestions);
+        renderQuestionList();
+    };
+
+    window.deleteQuestion = function(index) {
+        if (confirm(`Delete question: "${currentQuestions[index].question}"?`)) {
+            currentQuestions.splice(index, 1);
+            saveQuestionsToStorage(currentQuestions);
+            renderQuestionList();
+        }
+    };
+
+    // Question Manager event handlers
+    manageQuestionsBtn.addEventListener('click', () => {
+        questionManagerOverlay.style.display = 'flex';
+        renderQuestionList();
+    });
+
+    closeQuestionManagerBtn.addEventListener('click', () => {
+        questionManagerOverlay.style.display = 'none';
+    });
+
+    doneManagingBtn.addEventListener('click', () => {
+        questionManagerOverlay.style.display = 'none';
+    });
+
+    questionManagerOverlay.addEventListener('click', (e) => {
+        if (e.target === questionManagerOverlay) {
+            questionManagerOverlay.style.display = 'none';
+        }
+    });
+
+    addQuestionBtn.addEventListener('click', () => {
+        const question = prompt('Enter question:');
+        if (!question) return;
+
+        const correct = prompt('Enter correct answer:');
+        if (!correct) return;
+
+        const wrong = [];
+        for (let i = 0; i < 3; i++) {
+            const wrongAnswer = prompt(`Enter wrong answer ${i + 1}:`);
+            if (!wrongAnswer) return;
+            wrong.push(wrongAnswer);
+        }
+
+        currentQuestions.push({ question, correct, wrong });
+        saveQuestionsToStorage(currentQuestions);
+        renderQuestionList();
+    });
+
+    jsonFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const questions = JSON.parse(event.target.result);
+                if (!Array.isArray(questions)) throw new Error('Invalid format');
+                currentQuestions = questions;
+                saveQuestionsToStorage(currentQuestions);
+                renderQuestionList();
+                alert('Questions imported successfully!');
+            } catch (err) {
+                alert('Error importing file: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    pasteJsonBtn.addEventListener('click', () => {
+        const json = prompt('Paste your questions JSON here:');
+        if (!json) return;
+
+        try {
+            const questions = JSON.parse(json);
+            if (!Array.isArray(questions)) throw new Error('Invalid format');
+            currentQuestions = questions;
+            saveQuestionsToStorage(currentQuestions);
+            renderQuestionList();
+            alert('Questions imported successfully!');
+        } catch (err) {
+            alert('Error parsing JSON: ' + err.message);
+        }
+    });
+
+    pasteSpreadsheetBtn.addEventListener('click', () => {
+        const text = prompt('Paste spreadsheet data (Tab or comma separated):\nFormat: Question | Correct | Wrong1 | Wrong2 | Wrong3');
+        if (!text) return;
+
+        try {
+            const lines = text.trim().split('\n');
+            const questions = lines.map(line => {
+                const parts = line.split(/\t|,/).map(p => p.trim());
+                if (parts.length < 5) throw new Error('Each row needs 5 columns');
+                return {
+                    question: parts[0],
+                    correct: parts[1],
+                    wrong: [parts[2], parts[3], parts[4]]
+                };
+            });
+            currentQuestions = questions;
+            saveQuestionsToStorage(currentQuestions);
+            renderQuestionList();
+            alert(`Imported ${questions.length} questions!`);
+        } catch (err) {
+            alert('Error parsing spreadsheet: ' + err.message);
+        }
+    });
+
+    downloadJsonBtn.addEventListener('click', () => {
+        const json = JSON.stringify(currentQuestions, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'revise-questions.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    copyJsonBtn.addEventListener('click', () => {
+        const json = JSON.stringify(currentQuestions, null, 2);
+        navigator.clipboard.writeText(json).then(() => {
+            alert('Questions copied to clipboard!');
+        }).catch(err => {
+            alert('Failed to copy: ' + err.message);
+        });
+    });
+
+    clearAllBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to delete ALL questions? This cannot be undone!')) {
+            currentQuestions = [];
+            saveQuestionsToStorage(currentQuestions);
+            renderQuestionList();
+        }
+    });
+
     // Initialize
     applyTheme();
     updateModeIndicators();
+    updateQuestionCount();
 });

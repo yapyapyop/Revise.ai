@@ -194,6 +194,25 @@ button {
     cursor: not-allowed;
 }
 
+.btn-secondary {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-secondary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-option-hover);
+    border-color: var(--accent-color);
+}
+
+.btn-danger {
+    background-color: var(--incorrect-color);
+}
+
+.btn-danger:hover {
+    opacity: 0.9;
+}
+
 /* --- QUIZ UI --- */
 .progress-bar {
     background: var(--border-secondary);
@@ -298,6 +317,104 @@ button {
     width: 90%;
     max-width: 400px;
     border: 1px solid var(--border-primary);
+}
+
+.question-manager-modal {
+    background: var(--bg-card);
+    padding: 30px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid var(--border-primary);
+}
+
+.qm-status {
+    background: var(--bg-secondary);
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-secondary);
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.qm-section {
+    margin-bottom: 30px;
+}
+
+.qm-section-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.qm-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.qm-buttons .btn {
+    margin: 0;
+    flex: 1;
+    min-width: 150px;
+}
+
+.question-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-secondary);
+    padding: 10px;
+    margin-bottom: 15px;
+    background: var(--bg-secondary);
+}
+
+.question-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-secondary);
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.question-item-text {
+    flex: 1;
+    text-align: left;
+    font-size: 0.95em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.question-item-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.question-item-actions button {
+    background: none;
+    border: 1px solid var(--border-secondary);
+    padding: 5px 10px;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.question-item-actions button:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-color);
+}
+
+.qm-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-primary);
 }
 
 .settings-header {
