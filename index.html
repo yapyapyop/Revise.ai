@@ -13,13 +13,15 @@
 <body>
 <!-- Top Navigation Bar -->
 <div class="topbar">
-    <div class="logo">revise</div>
+    <div class="logo">
+        revise<span class="beta-tag">beta</span>
+    </div>
     <div class="topbar-actions">
         <button class="stats-btn" id="statsBtn">
-            📊 Stats
+             View on Github
         </button>
         <button class="settings-btn" id="settingsBtn">
-            ⚙️ Settings
+             Settings
         </button>
     </div>
 </div>
@@ -122,7 +124,7 @@
         <div class="setting-group">
             <label class="setting-label">Timed Mode</label>
             <div class="setting-description">
-                Race against the clock!
+                Race against the clock! (not implemented yet)
             </div>
             <label class="toggle-switch">
                 <input type="checkbox" id="notificationsToggle">
@@ -134,33 +136,26 @@
 
 <!-- Main Content Area -->
 <div class="main-content">
-    <div class="quiz-container">
         <div id="startScreen" class="start-screen">
-            <h1 class="title">Master Your Knowledge</h1>
-            <div class="study-mode-indicator" id="modeIndicator">
-                Elimination Mode Active
-            </div>
+            <h1 class="title">Welcome to Revise!</h1>
+
+            <hr style="margin: 20px 0; border: 0; height: 1px; background-color: #3d352a;">
+
+
             <p class="start-description">
-                Experience the next level of studying with contextually accurate wrong answers designed to challenge your understanding, not just your memory.
+                A free study tool with spaced repetition and  elimination modes. I built this because Quizlet  Learn costs money and I wanted better control  over practice questions.
             </p>
 
-            <div class="feature-highlights">
-                <div class="feature">
-                    <div class="feature-icon">🎯</div>
-                    <h3>Smart Distractors</h3>
-                    <p>Wrong answers are crafted to test real understanding, not just recognition.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🔄</div>
-                    <h3>Adaptive Learning</h3>
-                    <p>Choose between spaced repetition or elimination modes based on your preference.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">📊</div>
-                    <h3>Progress Tracking</h3>
-                    <p>Monitor your improvement and identify areas that need more attention.</p>
+            <hr style="margin: 20px 0; border: 0; height: 1px; background-color: #3d352a;">
+
+
+            <div>
+                <div class="study-mode-indicator" id="modeIndicator">
+                    Elimination Mode Active
                 </div>
             </div>
+
+
 
             <button class="btn" id="startBtn">Start Studying</button>
             <button class="btn btn-secondary" id="manageQuestionsBtn">📝 Manage Questions</button>

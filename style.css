@@ -92,6 +92,14 @@ button {
     gap: 8px;
 }
 
+.beta-tag {
+    font-size: 12px;
+    font-weight: 500;
+    color: #888888;
+    text-transform: lowercase;
+    /* letter-spacing: 1px; */
+}
+
 .logo::before {
     content: "📝";
     margin-right: 5px;
@@ -134,7 +142,14 @@ button {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    max-width: 800px;
+
+    margin-left: auto;
+    margin-right: auto;
+
+
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .quiz-container {
@@ -575,6 +590,7 @@ input:checked + .slider:before {
 
     .title {
         font-size: 2em;
+        color: var(--text-primary)
     }
 
     .feature-highlights {
