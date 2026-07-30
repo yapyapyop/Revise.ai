@@ -268,7 +268,7 @@ button {
     font-size: 1.05em;
 }
 
-.option:hover {
+.option:not(.disabled):hover {
     background: var(--bg-option-hover);
     border-color: var(--accent-color);
 }
@@ -408,10 +408,6 @@ button {
     transition: all 0.2s ease;
 }
 
-.option:hover {
-    background: var(--bg-option-hover);
-    border-color: var(--accent-color);
-}
 
 .quiz-card-footer {
     display: flex;
