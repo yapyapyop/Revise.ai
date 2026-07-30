@@ -140,16 +140,13 @@ button {
 .main-content {
     flex: 1;
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    max-width: 800px;
 
-    margin-left: auto;
-    margin-right: auto;
-
-
-    padding-left: 20px;
-    padding-right: 20px;
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
 }
 
 .quiz-container {
@@ -292,6 +289,152 @@ button {
     pointer-events: none;
 }
 
+.quiz-screen-container {
+    width: 100%;
+    max-width: 780px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.quiz-top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.quiz-main-title {
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.quiz-exit-btn {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s ease;
+}
+
+.quiz-exit-btn:hover {
+    color: var(--incorrect-color);
+}
+
+/* The Flashcard Container */
+.quiz-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    padding: 20px;
+    box-shadow: 0 8px 30px var(--shadow-light);
+}
+
+.quiz-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-primary);
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.quiz-set-title {
+    font-size: 1.6em;
+    font-weight: 400;
+    color: var(--text-primary);
+}
+
+.quiz-badges {
+    display: flex;
+    gap: 8px;
+}
+
+.quiz-progress-section {
+    margin-bottom: 24px;
+}
+
+.question-counter {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.progress-bar {
+    background: var(--border-primary);
+    height: 6px;
+    margin-bottom: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: var(--accent-color);
+    height: 100%;
+    width: 0%;
+    transition: width 0.2s linear;
+}
+
+.question {
+    font-size: 1.15em;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+.option {
+    background: var(--bg-option);
+    border: 1px solid var(--border-secondary);
+    padding: 14px 18px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1em;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.option:hover {
+    background: var(--bg-option-hover);
+    border-color: var(--accent-color);
+}
+
+.quiz-card-footer {
+    display: flex;
+    justify-content: flex-end; /* Pushes Next button to Bottom Right */
+    margin-top: 10px;
+}
+
+.quiz-card-footer .btn {
+    margin: 0;
+    min-width: 160px;
+}
+
+/* Mobile Adjustments for Quiz */
+@media (max-width: 600px) {
+    .quiz-card {
+        padding: 20px 16px;
+    }
+
+    .quiz-card-footer .btn {
+        width: 100%; /* Full width button on phone screens */
+    }
+}
+
 /* --- FEEDBACK --- */
 .feedback {
     margin: 20px 0;
@@ -377,6 +520,153 @@ button {
     min-width: 150px;
 }
 
+/* --- ACCORDION QUESTION MANAGER STYLES --- */
+.gear-btn {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.gear-btn:hover {
+    opacity: 1;
+}
+
+.accordion-list {
+    max-height: 450px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 5px;
+}
+
+.accordion-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    transition: border-color 0.2s ease;
+}
+
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--bg-secondary);
+}
+
+.accordion-header:hover {
+    background: var(--bg-option-hover);
+}
+
+.accordion-title {
+    font-weight: 600;
+    font-size: 0.95em;
+    color: var(--text-primary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 10px;
+    text-align: left;
+}
+
+.accordion-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.icon-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-secondary);
+    color: var(--text-primary);
+    padding: 4px 8px;
+    font-size: 0.85em;
+    cursor: pointer;
+}
+
+.icon-btn:hover {
+    border-color: var(--accent-color);
+}
+
+.icon-btn.danger:hover {
+    background: var(--incorrect-color);
+    color: white;
+}
+
+/* Expanded Accordion Body */
+.accordion-body {
+    padding: 16px;
+    border-top: 1px solid var(--border-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: left;
+}
+
+.qm-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.qm-input-label {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.qm-input {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-secondary);
+    color: var(--text-primary);
+    padding: 10px;
+    font-family: inherit;
+    font-size: 0.95em;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.qm-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.wrong-answer-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.add-wrong-btn {
+    background: var(--bg-secondary);
+    border: 1px dashed var(--border-secondary);
+    color: var(--text-primary);
+    padding: 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.add-wrong-btn:hover {
+    border-color: var(--accent-color);
+}
+
+.qm-editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-primary);
+}
+
 .question-list {
     max-height: 300px;
     overflow-y: auto;
@@ -450,7 +740,7 @@ button {
 .close-btn {
     background: none;
     border: none;
-    font-size: 1.5em;
+    font-size: 1.8em;
     line-height: 1;
     color: var(--text-secondary);
 }
@@ -571,6 +861,196 @@ input:checked + .slider:before {
     color: var(--text-secondary);
     font-size: 0.95em;
     line-height: 1.4;
+}
+
+/* --- DASHBOARD REDESIGN STYLES --- */
+.start-screen {
+    width: 100%;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px; /* 2 Column Layout */
+    gap: 40px;
+    align-items: start;
+    width: 100%;
+}
+
+.dashboard-main {
+    text-align: left;
+}
+
+.dashboard-title {
+    font-size: 2.2em;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.dashboard-subtitle {
+    font-size: 1.1em;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+/* --- ACTIVE CARD (Up Next) --- */
+.active-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px var(--shadow-light);
+}
+
+.card-set-title {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.card-progress-section {
+    margin-bottom: 20px;
+}
+
+.card-progress-bar {
+    background: var(--border-primary);
+    height: 8px;
+    width: 100%;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.card-progress-fill {
+    background: var(--correct-color);
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.card-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.card-actions .btn {
+    margin: 0;
+}
+
+/* Secondary Dashboard Links below Card */
+.dashboard-secondary-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.95em;
+    cursor: pointer;
+    padding: 4px 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.btn-link:hover {
+    color: var(--text-primary);
+}
+
+/* --- SIDEBAR --- */
+.dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar-create-btn {
+    width: 100%;
+    margin: 0;
+    padding: 12px;
+    text-align: center;
+}
+
+.sidebar-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    padding: 16px;
+}
+
+.sidebar-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.recent-sets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.recent-set-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary);
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+}
+
+.recent-set-item:hover {
+    background: var(--bg-option-hover);
+    border-color: var(--accent-color);
+}
+
+.view-all-link {
+    font-size: 0.85em;
+}
+
+/* --- ADVERTISEMENT --- */
+.ad-container {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.ad-placeholder {
+    background: var(--bg-secondary);
+    border: 1px dashed var(--border-secondary);
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 0.8em;
+    letter-spacing: 1px;
+}
+
+/* --- MOBILE RESPONSIVE DASHBOARD --- */
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr; /* Stack into 1 column on mobile */
+        gap: 24px;
+    }
+
+    .dashboard-sidebar {
+        order: 2; /* Sidebar sits under main content on phones */
+    }
 }
 
 /* --- RESPONSIVE --- */

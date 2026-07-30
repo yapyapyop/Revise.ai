@@ -1,5 +1,13 @@
-// Import the questions from the external file
-import allQuestions from './questions.js';
+// script.js
+import {
+    loadQuestionsFromStorage,
+    saveQuestionsToStorage,
+    saveActiveSession,
+    loadActiveSession,
+    clearActiveSession
+} from './storage.js';
+
+import { QuizSession } from './studyModes.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Settings and UI state
@@ -7,19 +15,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDarkMode = false;
     let isRandomOrder = false;
 
-    // DOM elements
+    // DOM elements - Screens
     const startScreen = document.getElementById('startScreen');
     const quizScreen = document.getElementById('quizScreen');
     const resultsScreen = document.getElementById('resultsScreen');
     const settingsOverlay = document.getElementById('settingsOverlay');
 
+    // DOM elements - Dashboard Cards & Stats
+    const activeSessionCard = document.getElementById('activeSessionCard');
+    const defaultSessionCard = document.getElementById('defaultSessionCard');
+    const cardSetTitle = document.getElementById('cardSetTitle');
+    const cardProgressFill = document.getElementById('cardProgressFill');
+    const cardProgressText = document.getElementById('cardProgressText');
+    const cardAccuracyText = document.getElementById('cardAccuracyText');
+    const badgeContainer = document.getElementById('badgeContainer');
+
+    // DOM elements - Action Buttons
     const startBtn = document.getElementById('startBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const startNewBtn = document.getElementById('startNewBtn');
+    const exitQuizBtn = document.getElementById('exitQuizBtn');
     const nextBtn = document.getElementById('nextBtn');
     const reviewBtn = document.getElementById('reviewBtn');
     const restartBtn = document.getElementById('restartBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 
+    // DOM elements - Quiz Screen
     const questionEl = document.getElementById('question');
     const optionsEl = document.getElementById('options');
     const feedbackEl = document.getElementById('feedback');
@@ -29,13 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const finalScoreEl = document.getElementById('finalScore');
     const resultsTextEl = document.getElementById('resultsText');
 
+    // DOM elements - Settings Modal
     const studyModeToggle = document.getElementById('studyModeToggle');
     const studyModeText = document.getElementById('studyModeText');
     const darkModeToggle = document.getElementById('darkModeToggle');
     const darkModeText = document.getElementById('darkModeText');
     const randomOrderToggle = document.getElementById('randomOrderToggle');
     const randomOrderText = document.getElementById('randomOrderText');
-    const modeIndicator = document.getElementById('modeIndicator');
     const quizModeIndicator = document.getElementById('quizModeIndicator');
 
     // Question Manager elements
@@ -53,297 +75,95 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyJsonBtn = document.getElementById('copyJsonBtn');
     const clearAllBtn = document.getElementById('clearAllBtn');
 
-    // Load questions from localStorage or use defaults
-    function loadQuestionsFromStorage() {
-        const stored = localStorage.getItem('revise_questions');
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                console.error('Error loading questions from storage:', e);
-            }
-        }
-        return [...allQuestions]; // Use imported questions as default
-    }
-
-    // Save questions to localStorage
-    function saveQuestionsToStorage(questions) {
-        localStorage.setItem('revise_questions', JSON.stringify(questions));
-    }
-
     // Current questions in use
     let currentQuestions = loadQuestionsFromStorage();
-
-    // Spaced Repetition Card System
-    class SpacedRepetitionCard {
-        constructor(question, id) {
-            this.question = question;
-            this.id = id;
-            this.interval = 1; // How many questions until next review
-            this.repetition = 0; // How many times reviewed
-            this.easeFactor = 2.5; // How easy this card is (affects future intervals)
-            this.dueAfter = 0; // Show after this many questions have been answered
-            this.consecutiveCorrect = 0; // Track consecutive correct answers
-        }
-
-        // Update card based on performance (correct/incorrect)
-        updateCard(correct, questionsAnswered) {
-            this.repetition++;
-
-            if (correct) {
-                this.consecutiveCorrect++;
-
-                // Calculate next interval using spaced repetition algorithm
-                if (this.consecutiveCorrect === 1) {
-                    this.interval = 1; // Review again soon
-                } else if (this.consecutiveCorrect === 2) {
-                    this.interval = 3; // Review in 3 questions
-                } else {
-                    this.interval = Math.round(this.interval * this.easeFactor);
-                }
-
-                // Increase ease factor for easy cards
-                this.easeFactor = Math.min(this.easeFactor + 0.1, 3.0);
-
-                // Card is mastered after 3 consecutive correct answers with intervals
-                if (this.consecutiveCorrect >= 3 && this.interval >= 5) {
-                    return 'mastered';
-                }
-
-            } else {
-                // Reset consecutive correct count and make it review sooner
-                this.consecutiveCorrect = 0;
-                this.interval = 3;
-                this.easeFactor = Math.max(this.easeFactor - 0.2, 1.3);
-            }
-
-            // Set when this card should appear again
-            this.dueAfter = questionsAnswered + this.interval;
-            return correct ? 'correct' : 'incorrect';
-        }
-
-        // Check if this card is due for review
-        isDue(questionsAnswered) {
-            return questionsAnswered >= this.dueAfter;
-        }
-    }
-
-    // Quiz state - completely rewritten for proper spaced repetition
-    class QuizSession {
-        constructor(questions, mode, randomOrder = false, title = 'Study Session') {
-            this.originalQuestions = [...questions];
-            this.mode = mode;
-            this.randomOrder = randomOrder;
-            this.title = title;
-            this.reset();
-        }
-
-        reset() {
-            this.questionsAnswered = 0;
-            this.questionsCorrect = 0;
-            this.currentQuestion = null;
-            this.answered = false;
-            this.isComplete = false;
-
-            if (this.mode === 'spaced-repetition') {
-                // Create spaced repetition cards
-                this.cards = this.originalQuestions.map((q, i) => new SpacedRepetitionCard(q, i));
-                this.masteredCards = [];
-                this.newCards = [...this.cards]; // Cards not yet introduced
-                this.reviewCards = []; // Cards due for review
-                this.currentCard = null;
-            } else {
-                // Elimination mode - respect randomOrder setting
-                if (this.randomOrder) {
-                    this.questionsQueue = this.shuffleArray([...this.originalQuestions]);
-                } else {
-                    this.questionsQueue = [...this.originalQuestions];
-                }
-                this.wrongAnswers = [];
-            }
-        }
-
-        shuffleArray(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        getNextQuestion() {
-            if (this.mode === 'elimination') {
-                return this.getNextEliminationQuestion();
-            } else {
-                return this.getNextSpacedRepetitionQuestion();
-            }
-        }
-
-        getNextEliminationQuestion() {
-            if (this.questionsQueue.length === 0) {
-                this.isComplete = true;
-                return null;
-            }
-            this.currentQuestion = this.questionsQueue.shift();
-            this.answered = false;
-            return this.currentQuestion;
-        }
-
-        getNextSpacedRepetitionQuestion() {
-            // Update review cards - check which cards are now due
-            this.updateReviewQueue();
-
-            // Choose next card: prioritize review cards, then new cards
-            let nextCard = null;
-
-            if (this.reviewCards.length > 0) {
-                // Pick a random review card that's due
-                const dueReviewCards = this.reviewCards.filter(card => card.isDue(this.questionsAnswered));
-                if (dueReviewCards.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * dueReviewCards.length);
-                    nextCard = dueReviewCards[randomIndex];
-                }
-            }
-
-            // If no review cards due, introduce a new card
-            if (!nextCard && this.newCards.length > 0) {
-                nextCard = this.newCards.shift(); // Take first new card
-            }
-
-            // If we have no cards left, session is complete
-            if (!nextCard) {
-                this.isComplete = true;
-                return null;
-            }
-
-            this.currentCard = nextCard;
-            this.currentQuestion = nextCard.question;
-            this.answered = false;
-            return this.currentQuestion;
-        }
-
-        updateReviewQueue() {
-            // Move any due cards that aren't already in review queue
-            this.cards.forEach(card => {
-                if (card.isDue(this.questionsAnswered) &&
-                    !this.reviewCards.includes(card) &&
-                    !this.newCards.includes(card) &&
-                    !this.masteredCards.includes(card)) {
-                    this.reviewCards.push(card);
-                }
-            });
-        }
-
-        answerQuestion(selectedAnswer) {
-            if (this.answered || !this.currentQuestion) return false;
-
-            this.answered = true;
-            this.questionsAnswered++;
-
-            const isCorrect = selectedAnswer === this.currentQuestion.correct;
-            if (isCorrect) {
-                this.questionsCorrect++;
-            }
-
-            if (this.mode === 'elimination') {
-                if (!isCorrect) {
-                    this.wrongAnswers.push(this.currentQuestion);
-                }
-            } else {
-                // Spaced repetition: update the card
-                const result = this.currentCard.updateCard(isCorrect, this.questionsAnswered);
-
-                if (result === 'mastered') {
-                    // Remove from review queue and mark as mastered
-                    this.reviewCards = this.reviewCards.filter(card => card.id !== this.currentCard.id);
-                    this.masteredCards.push(this.currentCard);
-
-                    // Visual feedback that card was mastered
-                    setTimeout(() => {
-                        if (feedbackEl) {
-                            feedbackEl.innerHTML += '<br><em>✨ Question mastered!</em>';
-                        }
-                    }, 100);
-
-                } else if (result === 'correct') {
-                    // Move to review queue if not already there
-                    if (!this.reviewCards.includes(this.currentCard)) {
-                        this.reviewCards.push(this.currentCard);
-                    }
-                } else {
-                    // Incorrect: make sure it's in review queue for soon
-                    if (!this.reviewCards.includes(this.currentCard)) {
-                        this.reviewCards.push(this.currentCard);
-                    }
-                }
-            }
-
-            return isCorrect;
-        }
-
-        getProgress() {
-            if (this.mode === 'elimination') {
-                return {
-                    current: this.questionsAnswered,
-                    total: this.originalQuestions.length,
-                    percentage: (this.questionsAnswered / this.originalQuestions.length) * 100
-                };
-            } else {
-                // Spaced repetition: show mastery progress
-                const totalCards = this.originalQuestions.length;
-                const masteredCount = this.masteredCards.length;
-                return {
-                    current: masteredCount,
-                    total: totalCards,
-                    percentage: (masteredCount / totalCards) * 100,
-                    // Additional info for spaced repetition
-                    newCards: this.newCards.length,
-                    reviewCards: this.reviewCards.filter(card => card.isDue(this.questionsAnswered)).length,
-                    mastered: masteredCount
-                };
-            }
-        }
-
-        getProgressText() {
-            const progress = this.getProgress();
-            if (this.mode === 'elimination') {
-                return `Question ${progress.current + 1} of ${progress.total}`;
-            } else {
-                const dueReviews = this.reviewCards.filter(card => card.isDue(this.questionsAnswered)).length;
-                return `Mastered: ${progress.mastered}/${progress.total} | New: ${progress.newCards} | Review: ${dueReviews}`;
-            }
-        }
-
-        getFinalScore() {
-            return {
-                correct: this.questionsCorrect,
-                total: this.questionsAnswered,
-                percentage: this.questionsAnswered > 0 ? Math.round((this.questionsCorrect / this.questionsAnswered) * 100) : 0
-            };
-        }
-
-        hasWrongAnswers() {
-            return this.mode === 'elimination' && this.wrongAnswers.length > 0;
-        }
-
-        createReviewSession() {
-            if (!this.hasWrongAnswers()) return null;
-            return new QuizSession(this.wrongAnswers, 'elimination', this.randomOrder, 'Reviewing Mistakes');
-        }
-
-        // Get some debug info for spaced repetition
-        getDebugInfo() {
-            if (this.mode !== 'spaced-repetition') return '';
-
-            const currentCardInfo = this.currentCard ?
-                `Current card: ${this.currentCard.consecutiveCorrect} correct, interval: ${this.currentCard.interval}` : '';
-
-            return currentCardInfo;
-        }
-    }
-
     let currentSession = null;
+
+    // --- QUIZ EXIT BUTTON ([X]) HANDLER ---
+    if (exitQuizBtn) {
+        exitQuizBtn.addEventListener('click', () => {
+            if (currentSession && !currentSession.isComplete) {
+                saveActiveSession(currentSession.exportSaveData());
+            }
+
+            quizScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+
+            checkActiveSession();
+        });
+    }
+
+    // --- DASHBOARD & ACTIVE SESSION CHECK ---
+    function checkActiveSession() {
+        const savedSession = loadActiveSession();
+        const dashboardSubtitle = document.getElementById('dashboardSubtitle');
+
+        if (savedSession && savedSession.questionsAnswered > 0) {
+            if (activeSessionCard) activeSessionCard.style.display = 'block';
+            if (defaultSessionCard) defaultSessionCard.style.display = 'none';
+            if (dashboardSubtitle) dashboardSubtitle.textContent = 'Pick up where you left off:';
+
+            if (cardSetTitle) cardSetTitle.textContent = savedSession.title || 'Current Study Set';
+
+            let progressPercentage = 0;
+            const totalQuestions = savedSession.totalQuestions || savedSession.originalQuestions?.length || currentQuestions.length || 1;
+
+            if (savedSession.mode === 'elimination') {
+                progressPercentage = Math.round((savedSession.questionsAnswered / totalQuestions) * 100);
+            } else {
+                const masteredCount = savedSession.masteredCards?.length || 0;
+                const cardsReviewedCount = savedSession.cards?.filter(c => c.repetition > 0).length || 0;
+
+                if (masteredCount > 0) {
+                    progressPercentage = Math.round((masteredCount / totalQuestions) * 100);
+                } else {
+                    progressPercentage = Math.min(90, Math.round((cardsReviewedCount / totalQuestions) * 100));
+                }
+            }
+            progressPercentage = Math.min(100, Math.max(0, progressPercentage));
+
+            const accuracyPercentage = savedSession.questionsAnswered > 0
+                ? Math.round((savedSession.questionsCorrect / savedSession.questionsAnswered) * 100)
+                : 0;
+
+            if (cardProgressFill) cardProgressFill.style.width = `${progressPercentage}%`;
+            if (cardProgressText) cardProgressText.textContent = `Progress: ${progressPercentage}%`;
+            if (cardAccuracyText) cardAccuracyText.textContent = `Accuracy: ${accuracyPercentage}% correct`;
+
+        } else {
+            if (activeSessionCard) activeSessionCard.style.display = 'none';
+            if (defaultSessionCard) defaultSessionCard.style.display = 'block';
+            if (dashboardSubtitle) dashboardSubtitle.textContent = 'Select your study mode and start learning:';
+        }
+    }
+
+    function updateModeIndicators() {
+        const modeText = isSpacedRepetition ? 'Spaced Repetition Mode' : 'Elimination Mode';
+        if (studyModeText) studyModeText.textContent = modeText;
+        if (quizModeIndicator) quizModeIndicator.textContent = isSpacedRepetition ? 'Spaced Repetition' : 'Elimination Mode';
+
+        if (badgeContainer) {
+            badgeContainer.innerHTML = '';
+
+            const modeBadge = document.createElement('div');
+            modeBadge.className = 'study-mode-indicator';
+            modeBadge.style.cursor = 'pointer';
+            modeBadge.style.marginBottom = '0';
+            modeBadge.textContent = isSpacedRepetition ? 'Spaced Repetition Mode Active' : 'Elimination Mode Active';
+            modeBadge.addEventListener('click', () => settingsOverlay.style.display = 'flex');
+            badgeContainer.appendChild(modeBadge);
+
+            if (isRandomOrder) {
+                const orderBadge = document.createElement('div');
+                orderBadge.className = 'study-mode-indicator';
+                orderBadge.style.cursor = 'pointer';
+                orderBadge.style.marginBottom = '0';
+                orderBadge.textContent = 'Random Order Active';
+                orderBadge.addEventListener('click', () => settingsOverlay.style.display = 'flex');
+                badgeContainer.appendChild(orderBadge);
+            }
+        }
+    }
 
     // Theme handlers
     darkModeToggle.addEventListener('change', (e) => {
@@ -384,20 +204,38 @@ document.addEventListener('DOMContentLoaded', () => {
     randomOrderToggle.addEventListener('change', (e) => {
         isRandomOrder = e.target.checked;
         randomOrderText.textContent = isRandomOrder ? 'Random Order' : 'Sequential Order';
+        updateModeIndicators();
     });
 
-    function updateModeIndicators() {
-        const modeText = isSpacedRepetition ? 'Spaced Repetition Mode' : 'Elimination Mode';
-        studyModeText.textContent = modeText;
-        modeIndicator.textContent = modeText + ' Active';
+    // Session Button Handlers
+    if (startBtn) startBtn.addEventListener('click', startQuiz);
 
-        if (quizModeIndicator) {
-            quizModeIndicator.textContent = isSpacedRepetition ? 'Spaced Repetition' : 'Elimination Mode';
-        }
+    if (resumeBtn) {
+        resumeBtn.addEventListener('click', () => {
+            const savedData = loadActiveSession();
+            if (!savedData) return;
+
+            currentSession = new QuizSession(
+                savedData.originalQuestions || currentQuestions,
+                savedData.mode,
+                savedData.randomOrder,
+                savedData.title
+            );
+            currentSession.loadFromSave(savedData);
+            startSession();
+        });
     }
 
-    // Quiz event handlers
-    startBtn.addEventListener('click', startQuiz);
+    if (startNewBtn) {
+        startNewBtn.addEventListener('click', () => {
+            if (confirm("Are you sure? This will erase your current session progress.")) {
+                clearActiveSession();
+                checkActiveSession();
+                startQuiz();
+            }
+        });
+    }
+
     nextBtn.addEventListener('click', nextQuestion);
     reviewBtn.addEventListener('click', startReview);
     restartBtn.addEventListener('click', restartQuiz);
@@ -437,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Setup question display
         const allAnswers = [question.correct, ...question.wrong];
         const shuffledAnswers = currentSession.shuffleArray ?
             currentSession.shuffleArray(allAnswers) :
@@ -445,14 +282,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         questionEl.textContent = question.question;
 
-        // Update progress - different display for each mode
         const progressText = currentSession.getProgressText();
         const progress = currentSession.getProgress();
 
         questionCounterEl.textContent = progressText;
         progressFillEl.style.width = progress.percentage + '%';
 
-        // Create answer options
         optionsEl.innerHTML = '';
         shuffledAnswers.forEach(answer => {
             const option = document.createElement('div');
@@ -464,22 +299,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         feedbackEl.style.display = 'none';
         nextBtn.disabled = true;
-
-        // Add debug info for spaced repetition
-        if (currentSession.mode === 'spaced-repetition') {
-            const debugInfo = currentSession.getDebugInfo();
-            if (debugInfo) {
-                console.log(debugInfo); // For debugging
-            }
-        }
     }
 
     function selectAnswer(optionElement, answer, correctAnswer) {
         if (currentSession.answered) return;
 
-        const isCorrect = currentSession.answerQuestion(answer);
+        const result = currentSession.answerQuestion(answer);
 
-        // Update UI
+        // Auto-save progress
+        saveActiveSession(currentSession.exportSaveData());
+
         const allOptions = document.querySelectorAll('.option');
         allOptions.forEach(opt => {
             opt.classList.add('disabled');
@@ -488,16 +317,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        if (isCorrect) {
+        if (result.isCorrect) {
             feedbackEl.className = 'feedback correct';
+
             if (currentSession.mode === 'spaced-repetition') {
-                const card = currentSession.currentCard;
-                if (card.consecutiveCorrect === 1) {
-                    feedbackEl.textContent = 'Correct! You\'ll see this again soon.';
-                } else if (card.consecutiveCorrect === 2) {
-                    feedbackEl.textContent = 'Correct again! Getting better at this one.';
+                if (result.status === 'mastered') {
+                    feedbackEl.innerHTML = 'Correct! <br><em>✨ Question mastered!</em>';
                 } else {
-                    feedbackEl.textContent = 'Excellent! This question is getting easier for you.';
+                    const card = currentSession.currentCard;
+                    if (card.consecutiveCorrect === 1) {
+                        feedbackEl.textContent = 'Correct! You\'ll see this again soon.';
+                    } else if (card.consecutiveCorrect === 2) {
+                        feedbackEl.textContent = 'Correct again! Getting better at this one.';
+                    } else {
+                        feedbackEl.textContent = 'Excellent! This question is getting easier for you.';
+                    }
                 }
             } else {
                 feedbackEl.textContent = 'Correct! Well done.';
@@ -524,6 +358,9 @@ document.addEventListener('DOMContentLoaded', () => {
         quizScreen.style.display = 'none';
         resultsScreen.style.display = 'block';
 
+        clearActiveSession();
+        checkActiveSession();
+
         const score = currentSession.getFinalScore();
         finalScoreEl.textContent = `${score.percentage}%`;
 
@@ -534,7 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsTextEl.textContent = `You got ${score.correct} out of ${score.total} questions correct!`;
         }
 
-        // Show review button only for elimination mode with wrong answers
         reviewBtn.style.display = currentSession.hasWrongAnswers() ? 'inline-block' : 'none';
     }
 
@@ -542,195 +378,201 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsScreen.style.display = 'none';
         startScreen.style.display = 'block';
         currentSession = null;
+        checkActiveSession();
     }
 
     // ============================================
-    // QUESTION MANAGER FUNCTIONS
-    // ============================================
+// ACCORDION QUESTION MANAGER & ADVANCED OPTIONS
+// ============================================
+
+    const advancedOptionsOverlay = document.getElementById('advancedOptionsOverlay');
+    const advancedOptionsBtn = document.getElementById('advancedOptionsBtn');
+    const closeAdvancedOptionsBtn = document.getElementById('closeAdvancedOptionsBtn');
+    const doneAdvancedBtn = document.getElementById('doneAdvancedBtn');
+    const saveQuestionsBtn = document.getElementById('saveQuestionsBtn');
+    const accordionQuestionList = document.getElementById('accordionQuestionList');
+
+    let expandedQuestionIndex = null; // Track which item is expanded
 
     function updateQuestionCount() {
-        questionCount.textContent = `${currentQuestions.length} question${currentQuestions.length !== 1 ? 's' : ''} loaded`;
+        if (questionCount) {
+            questionCount.textContent = `${currentQuestions.length} question${currentQuestions.length !== 1 ? 's' : ''} loaded`;
+        }
     }
 
+// Render Accordion List
     function renderQuestionList() {
-        questionList.innerHTML = '';
+        if (!accordionQuestionList) return;
+        accordionQuestionList.innerHTML = '';
+
         currentQuestions.forEach((q, index) => {
+            const isExpanded = expandedQuestionIndex === index;
             const item = document.createElement('div');
-            item.className = 'question-item';
-            item.innerHTML = `
-                <div class="question-item-text">${index + 1}. ${q.question}</div>
-                <div class="question-item-actions">
-                    <button onclick="editQuestion(${index})">✏️</button>
-                    <button onclick="deleteQuestion(${index})">🗑️</button>
+            item.className = 'accordion-item';
+
+            // Header Row (Collapsed view)
+            const header = document.createElement('div');
+            header.className = 'accordion-header';
+            header.innerHTML = `
+            <div class="accordion-title">${index + 1}. ${q.question || 'New Question'}</div>
+            <div class="accordion-actions">
+                <button class="icon-btn danger" title="Delete Question" onclick="event.stopPropagation(); deleteQuestion(${index})">🗑️</button>
+                <button class="icon-btn">${isExpanded ? '▲' : '▼'}</button>
+            </div>
+        `;
+            header.addEventListener('click', () => {
+                expandedQuestionIndex = isExpanded ? null : index;
+                renderQuestionList();
+            });
+            item.appendChild(header);
+
+            // Expanded Body
+            if (isExpanded) {
+                const body = document.createElement('div');
+                body.className = 'accordion-body';
+
+                // Question Input
+                body.innerHTML = `
+                <div class="qm-input-group">
+                    <label class="qm-input-label">Question Text:</label>
+                    <textarea class="qm-input q-text" rows="2">${q.question}</textarea>
+                </div>
+                <div class="qm-input-group">
+                    <label class="qm-input-label">Correct Answer:</label>
+                    <input type="text" class="qm-input q-correct" value="${q.correct || ''}">
+                </div>
+                <div class="qm-input-group">
+                    <label class="qm-input-label">Incorrect Answers:</label>
+                    <div class="wrong-answers-container"></div>
                 </div>
             `;
-            questionList.appendChild(item);
+
+                // Wrong Answers list inside expanded item
+                const wrongContainer = body.querySelector('.wrong-answers-container');
+                q.wrong.forEach((wrongAns, wIdx) => {
+                    const row = document.createElement('div');
+                    row.className = 'wrong-answer-row';
+                    row.innerHTML = `
+                    <input type="text" class="qm-input q-wrong" data-widx="${wIdx}" value="${wrongAns}">
+                    ${q.wrong.length > 1 ? `<button class="icon-btn danger" title="Remove Option">🗑️</button>` : ''}
+                `;
+
+                    // Delete Wrong Answer handler
+                    const delBtn = row.querySelector('.danger');
+                    if (delBtn) {
+                        delBtn.addEventListener('click', () => {
+                            q.wrong.splice(wIdx, 1);
+                            renderQuestionList();
+                        });
+                    }
+                    wrongContainer.appendChild(row);
+                });
+
+                // Add Wrong Answer Button
+                const addWrongBtn = document.createElement('button');
+                addWrongBtn.className = 'add-wrong-btn';
+                addWrongBtn.textContent = '+ Add Incorrect Answer';
+                addWrongBtn.addEventListener('click', () => {
+                    q.wrong.push('');
+                    renderQuestionList();
+                });
+                body.querySelector('.qm-input-group:last-child').appendChild(addWrongBtn);
+
+                // Real-time input listeners to update currentQuestions object
+                body.querySelector('.q-text').addEventListener('input', (e) => q.question = e.target.value);
+                body.querySelector('.q-correct').addEventListener('input', (e) => q.correct = e.target.value);
+                body.querySelectorAll('.q-wrong').forEach(input => {
+                    input.addEventListener('input', (e) => {
+                        const wIdx = parseInt(e.target.getAttribute('data-widx'));
+                        q.wrong[wIdx] = e.target.value;
+                    });
+                });
+
+                item.appendChild(body);
+            }
+
+            accordionQuestionList.appendChild(item);
         });
+
         updateQuestionCount();
     }
 
-    window.editQuestion = function(index) {
-        const q = currentQuestions[index];
-        const newQuestion = prompt('Edit question:', q.question);
-        if (newQuestion === null) return;
-
-        const newCorrect = prompt('Edit correct answer:', q.correct);
-        if (newCorrect === null) return;
-
-        const newWrong = [];
-        for (let i = 0; i < 3; i++) {
-            const wrong = prompt(`Edit wrong answer ${i + 1}:`, q.wrong[i] || '');
-            if (wrong === null) return;
-            newWrong.push(wrong);
-        }
-
-        currentQuestions[index] = {
-            question: newQuestion,
-            correct: newCorrect,
-            wrong: newWrong
-        };
-
-        saveQuestionsToStorage(currentQuestions);
-        renderQuestionList();
-    };
-
+// Global Delete Question Handler
     window.deleteQuestion = function(index) {
-        if (confirm(`Delete question: "${currentQuestions[index].question}"?`)) {
+        if (confirm(`Delete question #${index + 1}?`)) {
             currentQuestions.splice(index, 1);
-            saveQuestionsToStorage(currentQuestions);
+            if (expandedQuestionIndex === index) expandedQuestionIndex = null;
             renderQuestionList();
         }
     };
 
-    // Question Manager event handlers
-    manageQuestionsBtn.addEventListener('click', () => {
-        questionManagerOverlay.style.display = 'flex';
-        renderQuestionList();
-    });
-
-    closeQuestionManagerBtn.addEventListener('click', () => {
-        questionManagerOverlay.style.display = 'none';
-    });
-
-    doneManagingBtn.addEventListener('click', () => {
-        questionManagerOverlay.style.display = 'none';
-    });
-
-    questionManagerOverlay.addEventListener('click', (e) => {
-        if (e.target === questionManagerOverlay) {
-            questionManagerOverlay.style.display = 'none';
-        }
-    });
-
-    addQuestionBtn.addEventListener('click', () => {
-        const question = prompt('Enter question:');
-        if (!question) return;
-
-        const correct = prompt('Enter correct answer:');
-        if (!correct) return;
-
-        const wrong = [];
-        for (let i = 0; i < 3; i++) {
-            const wrongAnswer = prompt(`Enter wrong answer ${i + 1}:`);
-            if (!wrongAnswer) return;
-            wrong.push(wrongAnswer);
-        }
-
-        currentQuestions.push({ question, correct, wrong });
-        saveQuestionsToStorage(currentQuestions);
-        renderQuestionList();
-    });
-
-    jsonFileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const questions = JSON.parse(event.target.result);
-                if (!Array.isArray(questions)) throw new Error('Invalid format');
-                currentQuestions = questions;
-                saveQuestionsToStorage(currentQuestions);
-                renderQuestionList();
-                alert('Questions imported successfully!');
-            } catch (err) {
-                alert('Error importing file: ' + err.message);
-            }
-        };
-        reader.readAsText(file);
-    });
-
-    pasteJsonBtn.addEventListener('click', () => {
-        const json = prompt('Paste your questions JSON here:');
-        if (!json) return;
-
-        try {
-            const questions = JSON.parse(json);
-            if (!Array.isArray(questions)) throw new Error('Invalid format');
-            currentQuestions = questions;
-            saveQuestionsToStorage(currentQuestions);
-            renderQuestionList();
-            alert('Questions imported successfully!');
-        } catch (err) {
-            alert('Error parsing JSON: ' + err.message);
-        }
-    });
-
-    pasteSpreadsheetBtn.addEventListener('click', () => {
-        const text = prompt('Paste spreadsheet data (Tab or comma separated):\nFormat: Question | Correct | Wrong1 | Wrong2 | Wrong3');
-        if (!text) return;
-
-        try {
-            const lines = text.trim().split('\n');
-            const questions = lines.map(line => {
-                const parts = line.split(/\t|,/).map(p => p.trim());
-                if (parts.length < 5) throw new Error('Each row needs 5 columns');
-                return {
-                    question: parts[0],
-                    correct: parts[1],
-                    wrong: [parts[2], parts[3], parts[4]]
-                };
-            });
-            currentQuestions = questions;
-            saveQuestionsToStorage(currentQuestions);
-            renderQuestionList();
-            alert(`Imported ${questions.length} questions!`);
-        } catch (err) {
-            alert('Error parsing spreadsheet: ' + err.message);
-        }
-    });
-
-    downloadJsonBtn.addEventListener('click', () => {
-        const json = JSON.stringify(currentQuestions, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'revise-questions.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    });
-
-    copyJsonBtn.addEventListener('click', () => {
-        const json = JSON.stringify(currentQuestions, null, 2);
-        navigator.clipboard.writeText(json).then(() => {
-            alert('Questions copied to clipboard!');
-        }).catch(err => {
-            alert('Failed to copy: ' + err.message);
+    if (manageQuestionsBtn) {
+        manageQuestionsBtn.addEventListener('click', () => {
+            questionManagerOverlay.style.display = 'flex';
+            renderQuestionList(); // <--- THIS RENDERS THE ACCORDION UI!
         });
+    }
+
+    if (closeQuestionManagerBtn) {
+        closeQuestionManagerBtn.addEventListener('click', () => {
+            questionManagerOverlay.style.display = 'none';
+        });
+    }
+
+// Add New Blank Question
+    if (addQuestionBtn) {
+        addQuestionBtn.addEventListener('click', () => {
+            currentQuestions.push({
+                question: 'New Question',
+                correct: '',
+                wrong: ['']
+            });
+            expandedQuestionIndex = currentQuestions.length - 1; // Auto-expand new question!
+            renderQuestionList();
+        });
+    }
+
+// Save All Questions & Close Modal
+    if (saveQuestionsBtn) {
+        saveQuestionsBtn.addEventListener('click', () => {
+            saveQuestionsToStorage(currentQuestions);
+            questionManagerOverlay.style.display = 'none';
+            alert('Questions saved successfully!');
+        });
+    }
+
+// Advanced Options Modal Toggles (Gear Icon)
+    if (advancedOptionsBtn) {
+        advancedOptionsBtn.addEventListener('click', () => {
+            advancedOptionsOverlay.style.display = 'flex';
+        });
+    }
+
+    if (closeAdvancedOptionsBtn) {
+        closeAdvancedOptionsBtn.addEventListener('click', () => {
+            advancedOptionsOverlay.style.display = 'none';
+        });
+    }
+
+    if (doneAdvancedBtn) {
+        doneAdvancedBtn.addEventListener('click', () => {
+            advancedOptionsOverlay.style.display = 'none';
+            renderQuestionList(); // Refresh main list in case JSON was imported!
+        });
+    }
+
+// Modal Overlay Click Handlers
+    questionManagerOverlay.addEventListener('click', (e) => {
+        if (e.target === questionManagerOverlay) questionManagerOverlay.style.display = 'none';
     });
 
-    clearAllBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to delete ALL questions? This cannot be undone!')) {
-            currentQuestions = [];
-            saveQuestionsToStorage(currentQuestions);
-            renderQuestionList();
-        }
+    advancedOptionsOverlay.addEventListener('click', (e) => {
+        if (e.target === advancedOptionsOverlay) advancedOptionsOverlay.style.display = 'none';
     });
 
     // Initialize
     applyTheme();
     updateModeIndicators();
     updateQuestionCount();
+    checkActiveSession();
 });
