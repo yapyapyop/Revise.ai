@@ -45,8 +45,9 @@ export class SpacedRepetitionCard {
     }
 }
 
+// In studyModes.js
 export class QuizSession {
-    constructor(questions, mode, randomOrder = false, title = 'Study Session') {
+    constructor(questions, mode, randomOrder = false, title = 'Practice Set') {
         this.originalQuestions = [...questions];
         this.mode = mode;
         this.randomOrder = randomOrder;

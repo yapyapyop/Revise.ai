@@ -26,7 +26,6 @@
     </div>
 </div>
 
-<!-- Question Manager Modal -->
 <!-- MAIN QUESTION MANAGER MODAL (ACCORDION EDITOR) -->
 <div class="settings-overlay" id="questionManagerOverlay">
     <div class="question-manager-modal">
@@ -34,7 +33,6 @@
             <h2 class="settings-title">Questions Manager</h2>
 
             <div style="display: flex; align-items: center; gap: 15px;">
-                <!-- Clean, italicized text link on the far right -->
                 <button class="btn-link" id="advancedOptionsBtn" style="font-style: italic; font-size: 0.9em;">Advanced Options</button>
                 <button class="close-btn" id="closeQuestionManagerBtn">×</button>
             </div>
@@ -57,7 +55,7 @@
     </div>
 </div>
 
-<!-- ADVANCED OPTIONS SUB-MODAL (Reuses your working Import/Export/Clear code!) -->
+<!-- ADVANCED OPTIONS SUB-MODAL -->
 <div class="settings-overlay" id="advancedOptionsOverlay">
     <div class="settings-modal" style="max-width: 600px;">
         <div class="settings-header">
@@ -92,6 +90,7 @@
         </div>
     </div>
 </div>
+
 <!-- Settings Modal -->
 <div class="settings-overlay" id="settingsOverlay">
     <div class="settings-modal">
@@ -157,135 +156,138 @@
 
 <!-- Main Content Area -->
 <div class="main-content">
-        <div id="startScreen" class="start-screen">
-            <div class="dashboard-grid">
+    
+    <!-- DASHBOARD SCREEN -->
+    <div id="startScreen" class="start-screen">
+        <div class="dashboard-grid">
 
-                <!-- LEFT COLUMN: Main Dashboard Content -->
-                <div class="dashboard-main">
-                    <h1 class="dashboard-title">Welcome Back!</h1>
-                    <!-- Update the subtitle to have an ID -->
-                    <p class="dashboard-subtitle" id="dashboardSubtitle">Pick up where you left off:</p>
+            <!-- LEFT COLUMN: Main Dashboard Content -->
+            <div class="dashboard-main">
+                <h1 class="dashboard-title">Welcome Back!</h1>
+                <p class="dashboard-subtitle" id="dashboardSubtitle">Pick up where you left off:</p>
 
-                    <!-- ACTIVE SESSION CARD -->
-                    <div id="activeSessionCard" class="active-card" style="display: none;">
-                        <h2 class="card-set-title" id="cardSetTitle">Bio 102 Exam 2 MCQs</h2>
+                <!-- ACTIVE SESSION CARD -->
+                <div id="activeSessionCard" class="active-card" style="display: none;">
+                    <h2 class="card-set-title" id="cardSetTitle">Practice Set</h2>
 
-                        <div class="card-progress-section">
-                            <div class="card-progress-bar">
-                                <div class="card-progress-fill" id="cardProgressFill"></div>
-                            </div>
-                            <div class="card-stats">
-                                <span id="cardProgressText">Progress: 0%</span>
-                                <span id="cardAccuracyText">Accuracy: 0%</span>
-                            </div>
+                    <div class="card-progress-section">
+                        <div class="card-progress-bar">
+                            <div class="card-progress-fill" id="cardProgressFill"></div>
                         </div>
-
-                        <div class="card-actions">
-                            <button class="btn btn-primary" id="resumeBtn">🟢 Continue Studying</button>
-                            <button class="btn btn-secondary" id="startNewBtn">Start New Session</button>
+                        <div class="card-stats">
+                            <span id="cardProgressText">Progress: 0%</span>
+                            <span id="cardAccuracyText">Accuracy: 0%</span>
                         </div>
                     </div>
 
-                    <!-- DEFAULT CARD (Notice: removed the 'hidden' class from here!) -->
-                    <div id="defaultSessionCard" class="active-card" style="display: none;">
-                        <h2 class="card-set-title">Ready to Study?</h2>
-                        <p class="start-description">
-                            A free study tool with spaced repetition and elimination modes built for better practice questions.
-                        </p>
-                        <div class="card-actions">
-                            <button class="btn btn-primary" id="startBtn">Start Studying</button>
-                        </div>
-                    </div>
-
-                    <!-- SECONDARY DASHBOARD ACTIONS -->
-                    <div class="dashboard-secondary-actions">
-                        <button class="btn-link" id="manageQuestionsBtn">📝 Manage Questions</button>
-
-                        <!-- Dynamic Badges will render inside here! -->
-                        <div id="badgeContainer" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;"></div>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" id="resumeBtn">Continue Studying</button>
+                        <button class="btn btn-secondary" id="startNewBtn">Start New Session</button>
                     </div>
                 </div>
 
-                <!-- RIGHT COLUMN: Sidebar -->
-                <div class="dashboard-sidebar">
-                    <button class="btn btn-accent sidebar-create-btn" id="createNewSetBtn">[+] Create New Set</button>
-
-                    <div class="sidebar-section">
-                        <h3 class="sidebar-title">Recent Sets</h3>
-                        <div class="recent-sets-list" id="recentSetsList">
-                            <button class="recent-set-item">Bio 102 Exam 2 MCQs</button>
-                            <button class="recent-set-item">Bio 102 Exam 3 MCQs</button>
-                            <button class="recent-set-item">Bio 102 Exam 4 MCQs</button>
-                        </div>
-                        <button class="btn-link view-all-link">View All Sets</button>
-                    </div>
-
-                    <!-- ADVERTISEMENT SLOT -->
-                    <div class="ad-container">
-                        <div class="ad-placeholder">
-                            <span>ADVERTISEMENT</span>
-                        </div>
+                <!-- DEFAULT CARD -->
+                <div id="defaultSessionCard" class="active-card" style="display: none;">
+                    <h2 class="card-set-title">Ready to Study?</h2>
+                    <p class="start-description">
+                        A free study tool with spaced repetition and elimination modes built for better practice questions.
+                    </p>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" id="startBtn">Start Studying</button>
                     </div>
                 </div>
 
+                <!-- SECONDARY DASHBOARD ACTIONS -->
+                <div class="dashboard-secondary-actions">
+                    <button class="btn-link" id="manageQuestionsBtn">📝 Manage Questions</button>
+                    <div id="badgeContainer" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;"></div>
+                </div>
             </div>
+
+            <!-- RIGHT COLUMN: Sidebar -->
+            <div class="dashboard-sidebar">
+                <button class="btn btn-accent sidebar-create-btn" id="createNewSetBtn">[+] Create New Set</button>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Recent Sets</h3>
+                    <div class="recent-sets-list" id="recentSetsList">
+                        <button class="recent-set-item">Bio 102 Exam 2 MCQs</button>
+                        <button class="recent-set-item">Bio 102 Exam 3 MCQs</button>
+                        <button class="recent-set-item">Bio 102 Exam 4 MCQs</button>
+                    </div>
+                    <button class="btn-link view-all-link">View All Sets</button>
+                </div>
+
+                <!-- ADVERTISEMENT SLOT -->
+                <div class="ad-container">
+                    <div class="ad-placeholder">
+                        <span>ADVERTISEMENT</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- STUDY SESSION (QUIZ SCREEN) -->
+    <div id="quizScreen" class="quiz-screen-container" style="display: none;">
+
+        <!-- Top Header Outside the Card -->
+        <div class="quiz-top-header">
+            <h1 class="quiz-main-title">Study Session</h1>
+            <button class="quiz-exit-btn" id="exitQuizBtn" title="Exit to Dashboard">×</button>
         </div>
 
-        <!-- STUDY SESSION (QUIZ SCREEN) -->
-        <div id="quizScreen" class="quiz-screen-container" style="display: none;">
+        <!-- The Flashcard Card -->
+        <div class="quiz-card">
 
-            <!-- Top Header Outside the Card -->
-            <div class="quiz-top-header">
-                <h1 class="quiz-main-title">Study Session</h1>
-                <button class="quiz-exit-btn" id="exitQuizBtn" title="Exit to Dashboard">[X]</button>
+            <!-- Inside Card Header: Title + Badges -->
+            <div class="quiz-card-header">
+                <h2 class="quiz-set-title" id="quizTitle">Practice Set</h2>
+                <div class="quiz-badges" id="quizBadgeContainer">
+                    <div class="study-mode-indicator" id="quizModeIndicator">Elimination Mode</div>
+                </div>
             </div>
 
-            <!-- The Flashcard Card -->
-            <div class="quiz-card">
-
-                <!-- Inside Card Header: Title + Badges -->
-                <div class="quiz-card-header">
-                    <h2 class="quiz-set-title" id="quizTitle">Bio 101 Exam 2</h2>
-                    <div class="quiz-badges" id="quizBadgeContainer">
-                        <div class="study-mode-indicator" id="quizModeIndicator">Elimination Mode</div>
-                    </div>
+            <!-- Question Counter & Progress Bar -->
+            <div class="quiz-progress-section">
+                <div class="question-counter" id="questionCounter">Question 1/48</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
                 </div>
-
-                <!-- Question Counter & Progress Bar -->
-                <div class="quiz-progress-section">
-                    <div class="question-counter" id="questionCounter">Question 1/48</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                </div>
-
-                <!-- Question Text -->
-                <div class="question" id="question"></div>
-
-                <!-- Options / Answer Buttons -->
-                <div class="options" id="options"></div>
-
-                <!-- Feedback -->
-                <div class="feedback" id="feedback" style="display: none;"></div>
-
-                <!-- Card Footer: Next Button on Bottom Right -->
-                <div class="quiz-card-footer">
-                    <button class="btn" id="nextBtn" disabled>Next Question</button>
-                </div>
-
             </div>
+
+            <!-- Question Text -->
+            <div class="question" id="question"></div>
+
+            <!-- Options / Answer Buttons -->
+            <div class="options" id="options"></div>
+
+            <!-- Feedback -->
+            <div class="feedback" id="feedback" style="display: none;"></div>
+
+            <!-- Card Footer: Next Button on Bottom Right -->
+            <div class="quiz-card-footer">
+                <button class="btn" id="nextBtn" disabled>Next Question</button>
+            </div>
+
         </div>
+    </div>
 
-        <div id="resultsScreen" style="display: none;">
-            <div class="results">
-                <h1 class="title">Study Session Complete!</h1>
-                <div class="score" id="finalScore"></div>
-                <div class="results-text" id="resultsText"></div>
-                <button class="btn" id="reviewBtn" style="display: none;">Review Wrong Answers</button>
-                <button class="btn" id="restartBtn">Start New Session</button>
+    <!-- RESULTS SCREEN -->
+    <div id="resultsScreen" style="display: none;">
+        <div class="results">
+            <h1 class="title">Study Session Complete!</h1>
+            <div class="score" id="finalScore"></div>
+            <div class="results-text" id="resultsText"></div>
+            
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+                <button class="btn btn-secondary" id="reviewBtn" style="display: none;">Review Wrong Answers</button>
+                <button class="btn btn-primary" id="restartBtn">Start New Session</button>
             </div>
         </div>
     </div>
+
 </div>
 
 <script src="script.js" type="module" defer></script>

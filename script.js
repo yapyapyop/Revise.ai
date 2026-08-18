@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (defaultSessionCard) defaultSessionCard.style.display = 'none';
             if (dashboardSubtitle) dashboardSubtitle.textContent = 'Pick up where you left off:';
 
-            if (cardSetTitle) cardSetTitle.textContent = savedSession.title || 'Current Study Set';
+            if (cardSetTitle) cardSetTitle.textContent = savedSession.title || 'Practice Set';
 
             let progressPercentage = 0;
             const totalQuestions = savedSession.totalQuestions || savedSession.originalQuestions?.length || currentQuestions.length || 1;
@@ -246,7 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const mode = isSpacedRepetition ? 'spaced-repetition' : 'elimination';
-        currentSession = new QuizSession(currentQuestions, mode, isRandomOrder);
+        
+        // Pass 'Practice Set' as the title here:
+        currentSession = new QuizSession(currentQuestions, mode, isRandomOrder, 'Practice Set');
         startSession();
     }
 
@@ -262,7 +264,11 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsScreen.style.display = 'none';
         quizScreen.style.display = 'block';
 
-        quizTitleEl.textContent = currentSession.title;
+        // FIX: If the saved title is the old 'Study Session' or empty, change it to 'Practice Set'!
+        quizTitleEl.textContent = (!currentSession.title || currentSession.title === 'Study Session') 
+            ? 'Practice Set' 
+            : currentSession.title;
+
         updateModeIndicators();
         showQuestion();
     }

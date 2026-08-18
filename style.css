@@ -186,19 +186,94 @@ button {
     border: 1px solid var(--border-secondary);
 }
 
-/* --- BUTTONS --- */
+/* =========================================
+   BUTTON ARCHITECTURE (FIXED)
+   ========================================= */
+
+/* 1. BASE BUTTON: Gives ALL buttons matching height, padding & alignment */
 .btn {
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    font-size: 1.1em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 22px;
+    font-size: 1em;
     font-weight: 600;
-    margin: 0 10px;
+    font-family: inherit;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
 }
 
-.btn:hover {
-    background-color: var(--accent-hover);
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* 2. PRIMARY GREEN GRADIENT BUTTON (Continue / Start / Save / Next) */
+.btn-primary,
+.btn:not(.btn-secondary):not(.btn-danger):not(.btn-link) {
+    background: linear-gradient(180deg, #80a375 0%, #678a5c 100%);
+    border-color: #233b28;
+    color: #ffffff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.12);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.btn-primary:hover,
+.btn:not(.btn-secondary):not(.btn-danger):not(.btn-link):hover {
+    background: linear-gradient(180deg, #80a375 0%, #5b7a52 100%);
+    border-color: #1e3324;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:active,
+.btn:not(.btn-secondary):not(.btn-danger):not(.btn-link):active {
+    background: linear-gradient(180deg, #25402a 0%, #2e4d33 100%);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    transform: translateY(1px);
+}
+
+/* 3. SECONDARY BUTTON: Clean, matching-height subtle button */
+.btn-secondary {
+    background: var(--bg-secondary);
+    border-color: var(--border-secondary);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-option-hover);
+    border-color: var(--accent-color);
+}
+
+.btn-secondary:active {
+    transform: translateY(1px);
+}
+
+/* 4. DANGER BUTTON (Clear All) */
+.btn-danger {
+    background: var(--incorrect-color);
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    opacity: 0.9;
+}
+
+/* 5. DARK MODE REFINEMENTS */
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .btn:not(.btn-secondary):not(.btn-danger):not(.btn-link) {
+    background: linear-gradient(180deg, #80a375 0%, #678a5c 100%);
+    border-color: #233b28;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .btn-primary:hover,
+[data-theme="dark"] .btn:not(.btn-secondary):not(.btn-danger):not(.btn-link):hover {
+    background: linear-gradient(180deg, #538a58 0%, #3b633f 100%);
 }
 
 .btn:disabled {
@@ -309,21 +384,31 @@ button {
     color: var(--text-primary);
 }
 
+/* --- SLEEK GHOST CLOSE BUTTON --- */
 .quiz-exit-btn {
-    background: none;
-    border: none;
-    font-size: 1.2em;
-    font-weight: 700;
+    background: transparent;
+    border: 1px solid transparent; /* Invisible border keeps size fixed */
     color: var(--text-secondary);
+    font-size: 1.4em;
+    line-height: 1;
+    
+    /* Perfect square touch target */
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
     cursor: pointer;
-    padding: 4px 8px;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
+/* Hover: The box & background smoothly appear! */
 .quiz-exit-btn:hover {
-    color: var(--incorrect-color);
+    background: var(--bg-secondary);
+    border-color: var(--border-secondary);
+    color: var(--incorrect-color); /* Turns soft red/tan on hover */
 }
-
 /* The Flashcard Container */
 .quiz-card {
     background: var(--bg-card);
