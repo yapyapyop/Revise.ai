@@ -94,16 +94,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- DASHBOARD & ACTIVE SESSION CHECK ---
+    // Helper to italicize the 'Reviewing Mistakes' part
+    function formatSetTitle(title) {
+        if (!title || title === 'Study Session') return 'Practice Set';
+        if (title.includes(' - Reviewing Mistakes')) {
+            const base = title.replace(' - Reviewing Mistakes', '');
+            return `${base} - <em>Reviewing Mistakes</em>`;
+        }
+        return title;
+    }
+
+    // --- DASHBOARD & ACTIVE SESSION CHECK (FIXED) ---
     function checkActiveSession() {
         const savedSession = loadActiveSession();
         const dashboardSubtitle = document.getElementById('dashboardSubtitle');
 
-        if (savedSession && savedSession.questionsAnswered > 0) {
+        // BUG FIX: Check if questionsAnswered > 0 OR if there are remaining questions to answer!
+        const hasRemainingQuestions = (savedSession?.questionsQueue && savedSession.questionsQueue.length > 0) || 
+                                      (savedSession?.cards && savedSession.cards.length > 0);
+        const isActive = savedSession && (savedSession.questionsAnswered > 0 || hasRemainingQuestions);
+
+        if (isActive) {
             if (activeSessionCard) activeSessionCard.style.display = 'block';
             if (defaultSessionCard) defaultSessionCard.style.display = 'none';
             if (dashboardSubtitle) dashboardSubtitle.textContent = 'Pick up where you left off:';
 
-            if (cardSetTitle) cardSetTitle.textContent = savedSession.title || 'Practice Set';
+            // Use formatted title with italics
+            if (cardSetTitle) cardSetTitle.innerHTML = formatSetTitle(savedSession.title);
 
             let progressPercentage = 0;
             const totalQuestions = savedSession.totalQuestions || savedSession.originalQuestions?.length || currentQuestions.length || 1;
@@ -255,6 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function startReview() {
         if (currentSession && currentSession.hasWrongAnswers()) {
             currentSession = currentSession.createReviewSession();
+            // FIX: Auto-save the review session immediately so refreshing preserves it!
+            saveActiveSession(currentSession.exportSaveData());
             startSession();
         }
     }
@@ -264,11 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsScreen.style.display = 'none';
         quizScreen.style.display = 'block';
 
-        // FIX: If the saved title is the old 'Study Session' or empty, change it to 'Practice Set'!
-        quizTitleEl.textContent = (!currentSession.title || currentSession.title === 'Study Session') 
-            ? 'Practice Set' 
-            : currentSession.title;
-
+        // Renders "Practice Set - <em>Reviewing Mistakes</em>"
+        quizTitleEl.innerHTML = formatSetTitle(currentSession.title);
+        
         updateModeIndicators();
         showQuestion();
     }
@@ -364,15 +381,18 @@ document.addEventListener('DOMContentLoaded', () => {
         quizScreen.style.display = 'none';
         resultsScreen.style.display = 'block';
 
-        clearActiveSession();
-        checkActiveSession();
+        // FIX: Only clear active session if there are NO wrong answers to review!
+        if (!currentSession.hasWrongAnswers()) {
+            clearActiveSession();
+            checkActiveSession();
+        }
 
         const score = currentSession.getFinalScore();
         finalScoreEl.textContent = `${score.percentage}%`;
 
         if (currentSession.mode === 'spaced-repetition') {
             const progress = currentSession.getProgress();
-            resultsTextEl.textContent = `Great work! You mastered ${progress.mastered} out of ${progress.total} questions. You answered ${score.correct} out of ${score.total} questions correctly overall.`;
+            resultsTextEl.textContent = `Great work! You mastered ${progress.mastered} out of ${progress.total} questions.`;
         } else {
             resultsTextEl.textContent = `You got ${score.correct} out of ${score.total} questions correct!`;
         }
@@ -575,6 +595,107 @@ document.addEventListener('DOMContentLoaded', () => {
     advancedOptionsOverlay.addEventListener('click', (e) => {
         if (e.target === advancedOptionsOverlay) advancedOptionsOverlay.style.display = 'none';
     });
+
+    // --- ADVANCED OPTIONS LISTENERS (FIXED) ---
+    if (jsonFileInput) {
+        jsonFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const questions = JSON.parse(event.target.result);
+                    if (!Array.isArray(questions)) throw new Error('Invalid format');
+                    currentQuestions = questions;
+                    saveQuestionsToStorage(currentQuestions);
+                    renderQuestionList();
+                    alert('Questions imported successfully!');
+                } catch (err) {
+                    alert('Error importing file: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    if (pasteJsonBtn) {
+        pasteJsonBtn.addEventListener('click', () => {
+            const json = prompt('Paste your questions JSON here:');
+            if (!json) return;
+
+            try {
+                const questions = JSON.parse(json);
+                if (!Array.isArray(questions)) throw new Error('Invalid format');
+                currentQuestions = questions;
+                saveQuestionsToStorage(currentQuestions);
+                renderQuestionList();
+                alert('Questions imported successfully!');
+            } catch (err) {
+                alert('Error parsing JSON: ' + err.message);
+            }
+        });
+    }
+
+    if (pasteSpreadsheetBtn) {
+        pasteSpreadsheetBtn.addEventListener('click', () => {
+            const text = prompt('Paste spreadsheet data:\nFormat: Question | Correct | Wrong1 | Wrong2 | Wrong3');
+            if (!text) return;
+
+            try {
+                const lines = text.trim().split('\n');
+                const questions = lines.map(line => {
+                    const parts = line.split(/\t|,/).map(p => p.trim());
+                    if (parts.length < 5) throw new Error('Each row needs 5 columns');
+                    return {
+                        question: parts[0],
+                        correct: parts[1],
+                        wrong: [parts[2], parts[3], parts[4]]
+                    };
+                });
+                currentQuestions = questions;
+                saveQuestionsToStorage(currentQuestions);
+                renderQuestionList();
+                alert(`Imported ${questions.length} questions!`);
+            } catch (err) {
+                alert('Error parsing spreadsheet: ' + err.message);
+            }
+        });
+    }
+
+    if (downloadJsonBtn) {
+        downloadJsonBtn.addEventListener('click', () => {
+            const json = JSON.stringify(currentQuestions, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'revise-questions.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    if (copyJsonBtn) {
+        copyJsonBtn.addEventListener('click', () => {
+            const json = JSON.stringify(currentQuestions, null, 2);
+            navigator.clipboard.writeText(json).then(() => {
+                alert('Questions copied to clipboard!');
+            }).catch(err => {
+                alert('Failed to copy: ' + err.message);
+            });
+        });
+    }
+
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete ALL questions? This cannot be undone!')) {
+                currentQuestions = [];
+                saveQuestionsToStorage(currentQuestions);
+                renderQuestionList();
+            }
+        });
+    }
 
     // Initialize
     applyTheme();

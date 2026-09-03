@@ -4,11 +4,11 @@ export class SpacedRepetitionCard {
     constructor(question, id) {
         this.question = question;
         this.id = id;
-        this.interval = 1; // How many questions until next review
-        this.repetition = 0; // How many times reviewed
-        this.easeFactor = 2.5; // How easy this card is
-        this.dueAfter = 0; // Show after this many questions have been answered
-        this.consecutiveCorrect = 0; // Track consecutive correct answers
+        this.interval = 1;
+        this.repetition = 0;
+        this.easeFactor = 2.5;
+        this.dueAfter = 0;
+        this.consecutiveCorrect = 0;
     }
 
     updateCard(correct, questionsAnswered) {
@@ -27,12 +27,13 @@ export class SpacedRepetitionCard {
 
             this.easeFactor = Math.min(this.easeFactor + 0.1, 3.0);
 
-            if (this.consecutiveCorrect >= 3 && this.interval >= 5) {
+            // Mastered after 3 consecutive correct answers
+            if (this.consecutiveCorrect >= 3) {
                 return 'mastered';
             }
         } else {
             this.consecutiveCorrect = 0;
-            this.interval = 3;
+            this.interval = 1; // Review again soon
             this.easeFactor = Math.max(this.easeFactor - 0.2, 1.3);
         }
 
@@ -45,7 +46,6 @@ export class SpacedRepetitionCard {
     }
 }
 
-// In studyModes.js
 export class QuizSession {
     constructor(questions, mode, randomOrder = false, title = 'Practice Set') {
         this.originalQuestions = [...questions];
@@ -105,11 +105,19 @@ export class QuizSession {
         return this.currentQuestion;
     }
 
+    // --- FIXED SRS QUEUE LOGIC ---
     getNextSpacedRepetitionQuestion() {
         this.updateReviewQueue();
 
+        // 1. Session is ONLY complete when 100% of cards are mastered!
+        if (this.masteredCards.length >= this.cards.length) {
+            this.isComplete = true;
+            return null;
+        }
+
         let nextCard = null;
 
+        // 2. Check for review cards that are due right now
         if (this.reviewCards.length > 0) {
             const dueReviewCards = this.reviewCards.filter(card => card.isDue(this.questionsAnswered));
             if (dueReviewCards.length > 0) {
@@ -118,8 +126,16 @@ export class QuizSession {
             }
         }
 
+        // 3. If no review card is due, introduce a new card
         if (!nextCard && this.newCards.length > 0) {
             nextCard = this.newCards.shift();
+        }
+
+        // 4. BUG FIX: If no new cards and no cards strictly "due", pull the closest review card!
+        if (!nextCard && this.reviewCards.length > 0) {
+            // Sort by lowest dueAfter so the user continues practicing
+            this.reviewCards.sort((a, b) => a.dueAfter - b.dueAfter);
+            nextCard = this.reviewCards[0];
         }
 
         if (!nextCard) {
@@ -135,10 +151,11 @@ export class QuizSession {
 
     updateReviewQueue() {
         this.cards.forEach(card => {
-            if (card.isDue(this.questionsAnswered) &&
-                !this.reviewCards.includes(card) &&
-                !this.newCards.includes(card) &&
-                !this.masteredCards.includes(card)) {
+            const isMastered = this.masteredCards.some(c => c.id === card.id);
+            const isInReview = this.reviewCards.some(c => c.id === card.id);
+            const isNew = this.newCards.some(c => c.id === card.id);
+
+            if (!isMastered && !isInReview && !isNew) {
                 this.reviewCards.push(card);
             }
         });
@@ -166,9 +183,11 @@ export class QuizSession {
 
             if (cardStatus === 'mastered') {
                 this.reviewCards = this.reviewCards.filter(card => card.id !== this.currentCard.id);
-                this.masteredCards.push(this.currentCard);
+                if (!this.masteredCards.some(c => c.id === this.currentCard.id)) {
+                    this.masteredCards.push(this.currentCard);
+                }
             } else {
-                if (!this.reviewCards.includes(this.currentCard)) {
+                if (!this.reviewCards.some(c => c.id === this.currentCard.id)) {
                     this.reviewCards.push(this.currentCard);
                 }
             }
@@ -185,14 +204,14 @@ export class QuizSession {
                 percentage: (this.questionsAnswered / this.originalQuestions.length) * 100
             };
         } else {
-            const totalCards = this.originalQuestions.length;
+            const totalCards = this.cards.length;
             const masteredCount = this.masteredCards.length;
             return {
                 current: masteredCount,
                 total: totalCards,
                 percentage: (masteredCount / totalCards) * 100,
                 newCards: this.newCards.length,
-                reviewCards: this.reviewCards.filter(card => card.isDue(this.questionsAnswered)).length,
+                reviewCards: this.reviewCards.length,
                 mastered: masteredCount
             };
         }
@@ -203,8 +222,7 @@ export class QuizSession {
         if (this.mode === 'elimination') {
             return `Question ${progress.current + 1} of ${progress.total}`;
         } else {
-            const dueReviews = this.reviewCards.filter(card => card.isDue(this.questionsAnswered)).length;
-            return `Mastered: ${progress.mastered}/${progress.total} | New: ${progress.newCards} | Review: ${dueReviews}`;
+            return `Mastered: ${progress.mastered}/${progress.total} | Learning: ${progress.reviewCards}`;
         }
     }
 
@@ -222,16 +240,13 @@ export class QuizSession {
 
     createReviewSession() {
         if (!this.hasWrongAnswers()) return null;
-        return new QuizSession(this.wrongAnswers, 'elimination', this.randomOrder, 'Reviewing Mistakes');
+        // Grab the base set name (e.g. 'Practice Set') without repeating suffixes
+        const baseTitle = this.title.split(' - ')[0] || 'Practice Set';
+        const reviewTitle = `${baseTitle} - Reviewing Mistakes`;
+        
+        return new QuizSession(this.wrongAnswers, 'elimination', this.randomOrder, reviewTitle);
     }
 
-    getDebugInfo() {
-        if (this.mode !== 'spaced-repetition') return '';
-        return this.currentCard ?
-            `Current card: ${this.currentCard.consecutiveCorrect} correct, interval: ${this.currentCard.interval}` : '';
-    }
-
-    // --- NEW METHOD 1: Export current session state to JSON-friendly object ---
     exportSaveData() {
         const saveData = {
             mode: this.mode,
@@ -262,7 +277,6 @@ export class QuizSession {
         return saveData;
     }
 
-    // --- NEW METHOD 2: Restore session state from saved object ---
     loadFromSave(savedData) {
         this.mode = savedData.mode;
         this.randomOrder = savedData.randomOrder;
