@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark" style="background-color: #1a1812; color: #e8e4df;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>revise - Smart Study Tool</title>
+
+    <script>
+        const savedTheme = localStorage.getItem('revise_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,7 +16,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Svelte renders your entire app right inside here! -->
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
 </body>

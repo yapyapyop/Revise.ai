@@ -8,27 +8,31 @@
 }
 
 :root {
-    /* Light mode colors */
-    --bg-primary: #faf9f7;
-    --bg-secondary: #f5f2ef;
-    --bg-card: #ffffff;
-    --bg-option: #faf9f7;
-    --bg-option-hover: #f5f2ef;
+    /* 1. Backgrounds: Warm Book Page & Moleskine Cream */
+    --bg-primary: #f5f2eb;       /* Soft parchment canvas (Not harsh white) */
+    --bg-secondary: #eae5dc;     /* Pressed paper surface */
+    --bg-card: #faf8f5;          /* Crisp elevated card */
+    --bg-option: #f5f2eb;        /* Unselected button color */
+    --bg-option-hover: #eae5dc;  /* Subtle paper hover */
 
-    --text-primary: #2d2a26;
-    --text-secondary: #8b7355;
+    /* 2. Typography: Deep Espresso Ink (Not harsh pure black) */
+    --text-primary: #221f1c;     /* Heavy dark ink (High contrast, easy on eyes) */
+    --text-secondary: #7d756d;   /* Muted pencil graphite */
 
-    --border-primary: #e5e0d9;
-    --border-secondary: #dcd5c9;
+    /* 3. Borders: Soft Bookbinding Edges */
+    --border-primary: #ded8ce;
+    --border-secondary: #cfc7bc;
 
-    --accent-color: #8b7355;
-    --accent-hover: #7a6548;
+    /* 4. Accents: Oxford Academic Green */
+    --accent-color: #3b6640;
+    --accent-hover: #2f5233;
 
-    --correct-color: #6b8e60;
-    --incorrect-color: #a67c52;
+    /* 5. Feedback Colors */
+    --correct-color: #3b6640;    /* Muted forest green */
+    --incorrect-color: #a35d48;  /* Terracotta / Brick red */
 
-    --shadow-light: rgba(45, 42, 38, 0.05);
-    --overlay-bg: rgba(0, 0, 0, 0.5);
+    --shadow-light: rgba(34, 31, 28, 0.04);
+    --overlay-bg: rgba(34, 31, 28, 0.5);
 }
 
 [data-theme="dark"] {
@@ -62,7 +66,17 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    transition: background 0.2s ease, color 0.2s ease;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    /* transition: background 0.2s ease, color 0.2s ease; */
+}
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 button {
@@ -137,19 +151,17 @@ button {
 }
 
 /* --- MAIN LAYOUT --- */
-/* --- CENTERED MAIN CONTENT WRAPPER --- */
 .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: center; /* Vertical centering */
     
-    /* Widen to 960px to fit both columns comfortably */
-    max-width: 960px; 
+    max-width: 960px; /* Constrains the width on widescreen */
     width: 100%;
-    
-    /* Centers horizontally on the screen and gives 40px breathing room from the topbar */
-    margin: 40px auto; 
+    margin: 40px auto; /* ✨ Centers horizontally across any monitor! ✨ */
     padding: 0 20px;
+    box-sizing: border-box;
 }
 
 .quiz-container {
@@ -339,11 +351,15 @@ button {
 
 .option {
     background: var(--bg-option);
+    color: var(--text-primary);
     border: 1px solid var(--border-secondary);
-    padding: 15px;
+    padding: 14px 18px;
     text-align: left;
     cursor: pointer;
-    font-size: 1.05em;
+    font-size: 1em;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
 }
 
 .option:not(.disabled):hover {
@@ -352,17 +368,16 @@ button {
 }
 
 .option.correct {
-    background-color: var(--correct-color);
-    color: white;
-    border-color: var(--correct-color);
+    background-color: var(--correct-color) !important;
+    color: white !important;
+    border-color: var(--correct-color) !important;
 }
 
 .option.incorrect {
-    background-color: var(--incorrect-color);
-    color: white;
-    border-color: var(--incorrect-color);
+    background-color: var(--incorrect-color) !important;
+    color: white !important;
+    border-color: var(--incorrect-color) !important;
 }
-
 .option.disabled {
     pointer-events: none;
 }
