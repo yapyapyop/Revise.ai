@@ -17,6 +17,7 @@
     let isAnswered = false;
 
     $: progress = session.getProgress();
+    $: displayTitle = session.title || 'Practice Set';
     $: safeCounter = Math.min(progress.current + (isAnswered ? 0 : 1), progress.total);
     $: progressText = session.mode === 'elimination'
         ? `Question ${safeCounter} of ${progress.total}`
@@ -79,17 +80,26 @@
 <div class="ambient-workspace">
     <!-- Header -->
     <div class="ambient-header">
-        <div class="context-group">
-            <span class="context-title">Practice Set</span>
+    <div class="context-group">
+        <span class="context-title">{session?.title ? session.title.replace(/ - Reviewing Mistakes/g, '').trim() : 'Study Set'}</span>
+        <span class="context-dot">·</span>
+        <span class="context-modifier">{session.mode === 'spaced-repetition' ? 'Spaced Repetition' : 'Elimination'}</span>
+        
+        <!-- ✨ FIX: Show the review modifier! ✨ -->
+        {#if session.isReview}
             <span class="context-dot">·</span>
-            <span class="context-modifier">{session.mode === 'spaced-repetition' ? 'Spaced Repetition' : 'Elimination'}</span>
-            {#if isRandomOrder}
-                <span class="context-dot">·</span>
-                <span class="context-modifier">Random order</span>
-            {/if}
-        </div>
-        <button class="ghost-exit" on:click={onExit} title="Exit [Esc]">×</button>
+            <span class="context-modifier" style="font-style: italic; color: var(--incorrect-color);">
+                Reviewing mistakes
+            </span>
+        {/if}
+
+        {#if isRandomOrder}
+            <span class="context-dot">·</span>
+            <span class="context-modifier">Random order</span>
+        {/if}
     </div>
+    <button class="ghost-exit" on:click={onExit} title="Exit [Esc]">×</button>
+</div>
 
     <!-- Question -->
     {#if currentQuestion}

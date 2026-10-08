@@ -47,11 +47,12 @@ export class SpacedRepetitionCard {
 }
 
 export class QuizSession {
-    constructor(questions, mode, randomOrder = false, title = 'Practice Set') {
+    constructor(questions, mode, randomOrder = false, title = 'Practice Set', setId = null) {
         this.originalQuestions = [...questions];
         this.mode = mode;
         this.randomOrder = randomOrder;
         this.title = title;
+        this.setId = setId;
         this.reset();
     }
 
@@ -87,12 +88,17 @@ export class QuizSession {
         return shuffled;
     }
 
+    // In studyModes.js inside class QuizSession:
     getNextQuestion() {
         if (this.mode === 'elimination') {
             return this.getNextEliminationQuestion();
-        } else {
+        } else if (this.mode === 'spaced-repetition') {
             return this.getNextSpacedRepetitionQuestion();
         }
+        
+        // If an invalid mode is somehow passed, log a warning and do NOT run SRS queue!
+        console.warn(`QuizSession received unknown mode: ${this.mode}`);
+        return null;
     }
 
     getNextEliminationQuestion() {
@@ -100,7 +106,9 @@ export class QuizSession {
             this.isComplete = true;
             return null;
         }
-        this.currentQuestion = this.questionsQueue.shift();
+        
+        // ✨ FIX: PEEK at the question, don't remove it yet! ✨
+        this.currentQuestion = this.questionsQueue[0];
         this.answered = false;
         return this.currentQuestion;
     }
@@ -175,10 +183,14 @@ export class QuizSession {
         let cardStatus = isCorrect ? 'correct' : 'incorrect';
 
         if (this.mode === 'elimination') {
+            // ✨ FIX: NOW we remove it from the queue! ✨
+            this.questionsQueue.shift();
+            
             if (!isCorrect) {
                 this.wrongAnswers.push(this.currentQuestion);
             }
         } else {
+            // Spaced Repetition logic stays the same...
             cardStatus = this.currentCard.updateCard(isCorrect, this.questionsAnswered);
 
             if (cardStatus === 'mastered') {
@@ -204,14 +216,15 @@ export class QuizSession {
                 percentage: (this.questionsAnswered / this.originalQuestions.length) * 100
             };
         } else {
-            const totalCards = this.cards.length;
-            const masteredCount = this.masteredCards.length;
+            // ✨ SAFETY GUARD: fallback if this.cards is undefined ✨
+            const totalCards = this.cards?.length || this.originalQuestions?.length || 1;
+            const masteredCount = this.masteredCards?.length || 0;
             return {
                 current: masteredCount,
                 total: totalCards,
                 percentage: (masteredCount / totalCards) * 100,
-                newCards: this.newCards.length,
-                reviewCards: this.reviewCards.length,
+                newCards: this.newCards?.length || 0,
+                reviewCards: this.reviewCards?.length || 0,
                 mastered: masteredCount
             };
         }
@@ -238,13 +251,12 @@ export class QuizSession {
         return this.mode === 'elimination' && this.wrongAnswers.length > 0;
     }
 
-    createReviewSession() {
+   createReviewSession() {
         if (!this.hasWrongAnswers()) return null;
-        // Grab the base set name (e.g. 'Practice Set') without repeating suffixes
-        const baseTitle = this.title.split(' - ')[0] || 'Practice Set';
-        const reviewTitle = `${baseTitle} - Reviewing Mistakes`;
-        
-        return new QuizSession(this.wrongAnswers, 'elimination', this.randomOrder, reviewTitle);
+        const baseTitle = this.title.replace(/ - Reviewing Mistakes/g, '').trim();
+        const reviewSession = new QuizSession(this.wrongAnswers, 'elimination', this.randomOrder, baseTitle, this.setId);
+        reviewSession.isReview = true;
+        return reviewSession;
     }
 
     exportSaveData() {
@@ -252,6 +264,8 @@ export class QuizSession {
             mode: this.mode,
             randomOrder: this.randomOrder,
             title: this.title,
+            setId: this.setId, 
+            isReview: this.isReview || false,
             questionsAnswered: this.questionsAnswered,
             questionsCorrect: this.questionsCorrect,
             originalQuestions: this.originalQuestions
@@ -272,6 +286,7 @@ export class QuizSession {
         } else {
             saveData.questionsQueue = this.questionsQueue;
             saveData.wrongAnswers = this.wrongAnswers;
+            saveData.isReview = this.isReview || false;
         }
 
         return saveData;
@@ -284,6 +299,7 @@ export class QuizSession {
         this.questionsAnswered = savedData.questionsAnswered;
         this.questionsCorrect = savedData.questionsCorrect;
         this.originalQuestions = savedData.originalQuestions || this.originalQuestions;
+        this.isReview = savedData.isReview || false;
 
         if (this.mode === 'spaced-repetition') {
             this.cards = savedData.cards.map(cardData => {
@@ -315,5 +331,135 @@ export class QuizSession {
             this.questionsQueue = savedData.questionsQueue || [];
             this.wrongAnswers = savedData.wrongAnswers || [];
         }
+    }
+}
+// --- FLASHCARD SESSION ENGINE (Option B: In-Session Mastery Retry) ---
+export class FlashcardSession {
+    constructor(questions, order = 'sequential', title = 'Practice Set', setId = null) {
+        this.originalQuestions = [...questions];
+        this.order = order;
+        this.title = title;
+        this.setId = setId; // ✨ Store setId!
+        this.mode = 'flashcards';
+        this.reset();
+    }
+
+    reset() {
+        let list = this.originalQuestions.map((q, idx) => ({
+            id: q.id || idx,
+            question: q.question,
+            correct: q.correct,
+            attempts: 0,
+            firstAttemptSuccess: null
+        }));
+
+        if (this.order === 'random') {
+            for (let i = list.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [list[i], list[j]] = [list[j], list[i]];
+            }
+        }
+
+        this.queue = list;
+        this.totalCards = list.length;
+        this.currentCard = null;
+        this.graduatedCards = [];
+        this.isComplete = false;
+    }
+
+    getNextCard() {
+        if (this.queue.length === 0) {
+            this.isComplete = true;
+            this.currentCard = null;
+            return null;
+        }
+
+        // ✨ FIX: PEEK at the card, don't remove it yet! ✨
+        this.currentCard = this.queue[0];
+        return this.currentCard;
+    }
+
+    rateCard(rating) {
+        if (!this.currentCard) return;
+
+        // ✨ FIX: NOW we remove it from the front of the queue! ✨
+        const card = this.queue.shift();
+        card.attempts++;
+
+        if (card.attempts === 1) {
+            card.firstAttemptSuccess = (rating === 3);
+        }
+
+        if (rating === 3) {
+            this.graduatedCards.push(card);
+        } else if (rating === 2) {
+            const insertIndex = Math.max(1, Math.floor(this.queue.length / 2));
+            this.queue.splice(insertIndex, 0, card);
+        } else {
+            this.queue.push(card);
+        }
+        
+        this.currentCard = null;
+    }
+
+    getProgress() {
+        const remaining = this.queue.length + (this.currentCard ? 1 : 0);
+        const completed = this.graduatedCards.length;
+        const total = this.totalCards;
+        const percentage = Math.min(100, Math.round((completed / total) * 100));
+
+        return { remaining, completed, total, percentage };
+    }
+
+    getSummary() {
+        const firstTry = this.graduatedCards.filter(c => c.attempts === 1).length;
+        const twoTries = this.graduatedCards.filter(c => c.attempts === 2).length;
+        const extraTries = this.graduatedCards.filter(c => c.attempts > 2).length;
+
+        return {
+            total: this.totalCards,
+            firstTry,
+            twoTries,
+            extraTries
+        };
+    }
+
+    exportSaveData() {
+        return {
+            mode: 'flashcards',
+            order: this.order,
+            title: this.title,
+            setId: this.setId, 
+            queue: this.queue,
+            graduatedCards: this.graduatedCards,
+            totalCards: this.totalCards,
+            originalQuestions: this.originalQuestions
+        };
+    }
+
+    loadFromSave(savedData) {
+        this.mode = 'flashcards';
+        this.order = savedData.order || 'sequential';
+        this.title = savedData.title || this.title;
+        this.setId = savedData.setId || null; 
+        this.queue = savedData.queue || [];
+        this.graduatedCards = savedData.graduatedCards || [];
+        this.totalCards = savedData.totalCards || this.queue.length;
+        this.originalQuestions = savedData.originalQuestions || [];
+    }
+    // In studyModes.js inside class FlashcardSession:
+    getFinalScore() {
+        const summary = this.getSummary();
+        const pct = this.totalCards > 0 ? Math.round((summary.firstTry / this.totalCards) * 100) : 100;
+        return {
+            percentage: pct,
+            correct: summary.firstTry,
+            total: this.totalCards
+        };
+    }
+
+    hasWrongAnswers() {
+        // Flashcards repeats all cards until graduated, so no separate wrong-answers queue
+        return false;
     }
 }

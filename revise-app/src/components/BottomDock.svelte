@@ -3,7 +3,9 @@
     export let currentScreen = 'dashboard';
     export let isManagerOpen = false;
     export let isSettingsOpen = false;
+    export let isAnswered = false;
 </script>
+
 
 <footer class="dock-container">
     <div class="dock-content">
@@ -17,7 +19,6 @@
             {:else if isSettingsOpen}
                 <span class="dock-item"><kbd class="dock-key">Esc</kbd> close preferences</span>
             {:else if currentScreen === 'quiz'}
-                <!-- UNIFIED QUIZ SHORTCUTS (No flickering or redundant state switching!) -->
                 <span class="dock-item"><kbd class="dock-key">1–4</kbd> select option</span>
                 <span class="dock-dot">·</span>
                 <span class="dock-item"><kbd class="dock-key">Space</kbd> next question</span>
@@ -28,7 +29,34 @@
                 <span class="dock-dot">·</span>
                 <span class="dock-item"><kbd class="dock-key">M</kbd> edit questions</span>
             {:else if currentScreen === 'results'}
-                <span class="dock-item"><kbd class="dock-key">Space</kbd> back to dashboard</span>
+                <span class="dock-item"><kbd class="dock-key">Esc</kbd> back to dashboard</span>
+                <span class="dock-dot">·</span>
+                <span class="dock-item"><kbd class="dock-key">Enter</kbd> review wrong answeers</span>
+            {:else if currentScreen === 'all-sets'}
+                <span class="dock-item"><kbd class="dock-key">/</kbd> search sets</span>
+                <span class="dock-dot">·</span>
+                <span class="dock-item"><kbd class="dock-key">N</kbd> new set</span>
+                <span class="dock-dot">·</span>
+                <span class="dock-item"><kbd class="dock-key">Esc</kbd> dashboard</span>
+            {:else if currentScreen === 'flashcards'}
+                {#if !isAnswered}
+                    <span class="dock-item"><kbd class="dock-key">Space</kbd> flip card</span>
+                    <span class="dock-dot">·</span>
+                    <span class="dock-item"><kbd class="dock-key">Esc</kbd> exit</span>
+                {:else}
+                    <span class="dock-item"><kbd class="dock-key">1</kbd> didn't know</span>
+                    <span class="dock-dot">·</span>
+                    <span class="dock-item"><kbd class="dock-key">2</kbd> almost</span>
+                    <span class="dock-dot">·</span>
+                    <span class="dock-item"><kbd class="dock-key">3</kbd> knew it</span>
+                {/if}
+            {/if}
+            {#if currentScreen === 'set-overview'}
+                <span class="dock-item"><kbd class="dock-key">Space</kbd> start studying</span>
+                <span class="dock-dot">·</span>
+                <span class="dock-item"><kbd class="dock-key">M</kbd> edit questions</span>
+                <span class="dock-dot">·</span>
+                <span class="dock-item"><kbd class="dock-key">Esc</kbd> back</span>
             {/if}
         </div>
     </div>

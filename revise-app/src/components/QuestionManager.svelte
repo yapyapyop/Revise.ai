@@ -1,6 +1,7 @@
 <!-- src/components/QuestionManager.svelte -->
 <script>
     import { onMount, onDestroy } from 'svelte';
+    import ConfirmModal from './ConfirmModal.svelte';
 
     export let questions = [];
     export let onClose;
@@ -9,6 +10,7 @@
     let localQuestions = JSON.parse(JSON.stringify(questions));
     let expandedIndex = localQuestions.length > 0 ? 0 : null;
     let showAdvancedModal = false;
+    let activeDialog = null;
 
     onMount(() => {
         window.addEventListener('keydown', handleKeydown);
@@ -48,12 +50,20 @@
     }
 
     function deleteQuestion(index, e) {
-        e.stopPropagation();
-        if (confirm(`Delete question #${index + 1}?`)) {
+    e.stopPropagation();
+    activeDialog = {
+        title: 'Delete Question',
+        message: `Delete question #${index + 1}?`,
+        confirmLabel: 'Delete',
+        isDestructive: true,
+        onConfirm: () => {
             localQuestions = localQuestions.filter((_, i) => i !== index);
             if (expandedIndex === index) expandedIndex = null;
-        }
-    }
+            activeDialog = null;
+        },
+        onCancel: () => activeDialog = null
+    };
+}
 
     function addWrongAnswer(qIndex) {
         localQuestions[qIndex].wrong = [...localQuestions[qIndex].wrong, ''];
@@ -89,38 +99,59 @@
     }
 
     function handlePasteJson() {
-        const json = prompt('Paste your questions JSON here:');
-        if (!json) return;
-        try {
-            const parsed = JSON.parse(json);
-            if (!Array.isArray(parsed)) throw new Error('Invalid format');
-            localQuestions = parsed;
-            showAdvancedModal = false;
-        } catch (err) {
-            alert('Error parsing JSON: ' + err.message);
-        }
-    }
+    activeDialog = {
+        title: 'Paste JSON Questions',
+        message: 'Paste an array of questions in JSON format:',
+        confirmLabel: 'Import JSON',
+        isInput: true,
+        inputPlaceholder: '[ { "question": "...", "correct": "...", "wrong": [...] } ]',
+        onConfirm: (text) => {
+            if (!text || !text.trim()) return;
+            try {
+                const parsed = JSON.parse(text);
+                if (!Array.isArray(parsed)) throw new Error('JSON must be an array');
+                localQuestions = parsed;
+                showAdvancedModal = false;
+                activeDialog = null;
+            } catch (err) {
+                alert('Error parsing JSON: ' + err.message);
+            }
+        },
+        onCancel: () => activeDialog = null
+    };
+}
 
-    function handlePasteSpreadsheet() {
-        const text = prompt('Paste spreadsheet data:\nFormat: Question | Correct | Wrong1 | Wrong2 | Wrong3');
-        if (!text) return;
-        try {
-            const lines = text.trim().split('\n');
-            const parsed = lines.map(line => {
-                const parts = line.split(/\t|,/).map(p => p.trim());
-                if (parts.length < 5) throw new Error('Each row needs 5 columns');
-                return {
-                    question: parts[0],
-                    correct: parts[1],
-                    wrong: [parts[2], parts[3], parts[4]]
-                };
-            });
-            localQuestions = parsed;
-            showAdvancedModal = false;
-        } catch (err) {
-            alert('Error parsing spreadsheet: ' + err.message);
-        }
-    }
+function handlePasteSpreadsheet() {
+    activeDialog = {
+        title: 'Paste Spreadsheet Notes',
+        message: 'Paste rows (tab or comma separated):\nFormat: Question | Correct | Wrong1 | Wrong2 | Wrong3',
+        confirmLabel: 'Import Notes',
+        isInput: true,
+        inputPlaceholder: 'Mitochondria \t Powerhouse of the cell...',
+        onConfirm: (text) => {
+            if (!text || !text.trim()) return;
+            try {
+                const lines = text.trim().split('\n');
+                const parsed = lines.map(line => {
+                    const parts = line.split(/\t|,/).map(p => p.trim());
+                    if (parts.length < 5) throw new Error('Each row needs 5 columns');
+                    return {
+                        question: parts[0],
+                        correct: parts[1],
+                        wrong: [parts[2], parts[3], parts[4]]
+                    };
+                });
+                localQuestions = parsed;
+                showAdvancedModal = false;
+                activeDialog = null;
+            } catch (err) {
+                alert('Error parsing spreadsheet: ' + err.message);
+            }
+        },
+        onCancel: () => activeDialog = null
+    };
+}
+
 
     function handleDownloadJson() {
         const json = JSON.stringify(localQuestions, null, 2);
@@ -141,11 +172,19 @@
     }
 
     function handleClearAll() {
-        if (confirm('Are you sure you want to delete ALL questions? This cannot be undone!')) {
+    activeDialog = {
+        title: 'Clear All Questions',
+        message: 'Are you sure you want to delete ALL questions in this deck? This cannot be undone!',
+        confirmLabel: 'Clear All',
+        isDestructive: true,
+        onConfirm: () => {
             localQuestions = [];
             showAdvancedModal = false;
-        }
-    }
+            activeDialog = null;
+        },
+        onCancel: () => activeDialog = null
+    };
+}
 </script>
 
 <div class="workbench-overlay" on:click={(e) => e.target === e.currentTarget && onClose()}>
@@ -291,6 +330,20 @@
             </div>
         </div>
     </div>
+{/if}
+
+<!-- At the bottom of QuestionManager.svelte: -->
+{#if activeDialog}
+    <ConfirmModal 
+        title={activeDialog.title}
+        message={activeDialog.message}
+        confirmLabel={activeDialog.confirmLabel}
+        isDestructive={activeDialog.isDestructive}
+        isInput={activeDialog.isInput}
+        inputPlaceholder={activeDialog.inputPlaceholder}
+        onConfirm={activeDialog.onConfirm}
+        onCancel={activeDialog.onCancel}
+    />
 {/if}
 
 <style>
