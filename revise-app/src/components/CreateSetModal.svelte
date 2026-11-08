@@ -1,6 +1,7 @@
 <!-- src/components/CreateSetModal.svelte -->
 <script>
     import { onMount, onDestroy } from 'svelte';
+    import { parseStudyNotes } from '../lib/parser.js';
 
     export let onClose;
     export let onCreateSet; // Returns (newSet, shouldOpenEditor)
@@ -68,6 +69,8 @@
 
     // 2. Parse Delimited Text (Spreadsheet / Quizlet export)
     function handleImportSpreadsheet() {
+        const questions = parseStudyNotes(spreadsheetText);
+
         if (!spreadsheetText.trim()) return;
 
         try {

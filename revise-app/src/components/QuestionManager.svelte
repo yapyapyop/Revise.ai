@@ -2,6 +2,7 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
     import ConfirmModal from './ConfirmModal.svelte';
+    import { parseStudyNotes } from '../lib/parser.js';
 
     export let questions = [];
     export let onClose;

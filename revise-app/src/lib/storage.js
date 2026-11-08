@@ -21,7 +21,7 @@ const INITIAL_SEED_SETS = [
     },
     {
         id: 'set_bio_cell',
-        title: 'Biology 102 — Cell Structure',
+        title: 'Biology 102 - Cell Structure',
         description: 'Core cellular organelles, membrane transport, and ATP synthesis.',
         tags: ['Biology', 'STEM', 'Midterm 1'],
         createdAt: Date.now() - 86400000,
@@ -52,7 +52,7 @@ const INITIAL_SEED_SETS = [
     },
     {
         id: 'set_world_history',
-        title: 'World History — Ancient Civilizations',
+        title: 'World History - Ancient Civilizations',
         description: 'Mesopotamia, ancient Egypt, Mesoamerica, and the Silk Road.',
         tags: ['History', 'Humanities'],
         createdAt: Date.now(),

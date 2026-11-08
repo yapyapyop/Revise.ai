@@ -235,7 +235,7 @@
                             <span class="setting-title">Revise</span>
                             <span class="setting-desc">A simple, free, and focused way to study.</span>
                         </div>
-                        <span class="quiet-status-tag">v1.2.0 beta</span>
+                        <span class="quiet-status-tag">v1.2.1 beta</span>
                     </div>
 
                     <div class="setting-row">

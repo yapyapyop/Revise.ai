@@ -40,7 +40,9 @@
             e.preventDefault();
             searchInputEl?.focus();
         }
-        if ((e.key === 'n' || e.key === 'N') && document.activeElement !== searchInputEl) {
+        // ✨ FIX: Check that user is NOT focused in ANY input or textarea! ✨
+        const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+        if ((e.key === 'n' || e.key === 'N') && !isTyping) {
             e.preventDefault();
             onNewSet();
         }

@@ -7,8 +7,12 @@
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
 
     <script>
-        const savedTheme = localStorage.getItem('revise_theme') || 'dark';
+        const savedTheme = localStorage.getItem('revise_theme') || 'warm-paper';
         document.documentElement.setAttribute('data-theme', savedTheme);
+        if (savedTheme === 'dark' || savedTheme === 'dark-academia') {
+            document.documentElement.style.backgroundColor = '#1a1812';
+            document.documentElement.style.color = '#e8e4df';
+        }
     </script>
     
     <!-- Google Fonts -->

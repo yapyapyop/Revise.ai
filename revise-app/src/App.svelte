@@ -40,20 +40,20 @@
     let showQuestionManager = false;
     let activeDialog = null; // Holds configuration for current modal
     let isQuizAnswered = false;
-    let isDarkMode = true;
+    let isDarkMode = false;
 
     onMount(() => {
         allSets = loadAllSets();
         selectedSet = allSets[0];
         activeSession = loadActiveSession();
 
-        const savedTheme = localStorage.getItem('revise_theme') || 'dark';
-        isDarkMode = (savedTheme === 'dark');
+        const savedTheme = localStorage.getItem('revise_theme') || 'warm-paper';
+        isDarkMode = (savedTheme === 'dark' || savedTheme === 'dark-academia');
     });
 
     function toggleTheme() {
         isDarkMode = !isDarkMode;
-        const theme = isDarkMode ? 'dark' : 'light';
+        const theme = isDarkMode ? 'dark-academia' : 'warm-paper';
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('revise_theme', theme);
     }

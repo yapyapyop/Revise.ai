@@ -10,6 +10,7 @@
 
     let currentCard = null;
     let isFlipped = false;
+    let isTransitioning = false;
 
     $: progress = session ? session.getProgress() : { remaining: 0, completed: 0, total: 0, percentage: 0 };
     $: displayTitle = session.title || 'Practice Set';
@@ -69,9 +70,21 @@
     }
 
     function handleRate(rating) {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
         session.rateCard(rating);
         saveActiveSession(session.exportSaveData());
-        loadNextCard();
+
+        // Unflip card immediately
+        isFlipped = false;
+        onFlipStateChange(false);
+
+        // Wait 300ms for rotation to finish before loading next card data!
+        setTimeout(() => {
+            loadNextCard();
+            isTransitioning = false;
+        }, 300);
     }
 </script>
 
@@ -107,8 +120,11 @@
                 <div class="card-face card-back">
                     <span class="face-tag">Answer</span>
                     <div class="card-body">
-                        <h2 class="answer-text">{currentCard.correct}</h2>
-                    </div>
+        <!-- Hide text during the flip transition to prevent leak! -->
+        <h2 class="answer-text" style="opacity: {isTransitioning ? '0' : '1'}; transition: opacity 0.1s ease;">
+            {currentCard.correct}
+        </h2>
+    </div>
 
                     <!-- 3-Tier Rating Action Row -->
                     <div class="rating-bar" on:click|stopPropagation>

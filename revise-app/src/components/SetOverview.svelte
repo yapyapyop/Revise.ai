@@ -122,7 +122,7 @@
     <!-- ✨ FIX: Show active review status in Set Overview ✨ -->
     {#if hasActiveSessionForThisSet && activeSession?.isReview}
     <div class="config-block" style="margin-bottom: 10px;">
-        <span class="config-label" style="color: var(--incorrect-color);">ACTIVE REVIEW SESSION</span>
+        <span class="config-label" style="color: var(--incorrect-color);">Active Review Session</span>
         <span style="font-size: 0.9em; color: var(--text-secondary);">
             You have an unfinished mistake review. Continuing will resume this review.
         </span>
