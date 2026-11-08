@@ -53,7 +53,7 @@
 
     function toggleTheme() {
         isDarkMode = !isDarkMode;
-        const theme = isDarkMode ? 'dark-academia' : 'warm-paper';
+        const theme = isDarkMode ? 'dark' : 'warm-paper';
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('revise_theme', theme);
     }
